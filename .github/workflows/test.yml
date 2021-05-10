@@ -20,9 +20,9 @@ jobs:
         go get -u golang.org/x/tools/cmd/goimports
     - name: Build
       run: go build .
-    - name: Test
-      run: go test ./...
     - name: Lint
       run: go lint ./...
     - name: Code formatting
       run: goimports -l .
+    - name: Test
+      run: go test ./...
