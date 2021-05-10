@@ -8,8 +8,9 @@ import (
 	"log"
 	"net/http"
 
-	jsonata "github.com/blues/jsonata-go"
 	"encoding/json"
+
+	jsonata "github.com/blues/jsonata-go"
 )
 
 var (
