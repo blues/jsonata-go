@@ -235,7 +235,7 @@ func (n *PathNode) optimize() (Node, error) {
 }
 
 func (n PathNode) String() string {
-	s := fmt.Sprintf("%s", joinNodes(n.Steps, "."))
+	s := joinNodes(n.Steps, ".")
 	if n.KeepArrays {
 		s += "[]"
 	}
