@@ -16,7 +16,6 @@ import (
 
 	jsonata "github.com/blues/jsonata-go"
 	"github.com/blues/jsonata-go/jtypes"
-	"github.com/blues/note-go/note"
 )
 
 func init() {
@@ -91,14 +90,14 @@ func eval(input, expression string) (b []byte, status int, err error) {
 
 	// Decode the JSON.
 	var data interface{}
-	if err := note.JSONUnmarshal([]byte(input), &data); err != nil {
-		return nil, http.StatusBadRequest, fmt.Errorf("Input error: %s", err)
+	if err := json.Unmarshal([]byte(input), &data); err != nil {
+		return nil, http.StatusBadRequest, fmt.Errorf("input error: %s", err)
 	}
 
 	// Compile the JSONata expression.
 	expr, err := jsonata.Compile(expression)
 	if err != nil {
-		return nil, http.StatusBadRequest, fmt.Errorf("Compile error: %s", err)
+		return nil, http.StatusBadRequest, fmt.Errorf("compile error: %s", err)
 	}
 
 	// Evaluate the JSONata expression.
@@ -108,13 +107,13 @@ func eval(input, expression string) (b []byte, status int, err error) {
 			// Don't treat not finding any results as an error.
 			return []byte("No results found"), http.StatusOK, nil
 		}
-		return nil, http.StatusInternalServerError, fmt.Errorf("Eval error: %s", err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("eval error: %s", err)
 	}
 
 	// Return the JSONified results.
 	b, err = jsonify(result)
 	if err != nil {
-		return nil, http.StatusInternalServerError, fmt.Errorf("Encode error: %s", err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("encode error: %s", err)
 	}
 
 	return b, http.StatusOK, nil

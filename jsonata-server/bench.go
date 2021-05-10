@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	jsonata "github.com/blues/jsonata-go"
-	"github.com/blues/note-go/note"
+	"encoding/json"
 )
 
 var (
@@ -76,7 +76,7 @@ var (
 var data interface{}
 
 func init() {
-	if err := note.JSONUnmarshal(benchData, &data); err != nil {
+	if err := json.Unmarshal(benchData, &data); err != nil {
 		panic(err)
 	}
 }
