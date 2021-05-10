@@ -7,7 +7,7 @@ It currently has feature parity with jsonata-js 1.5.4. As well as a most of the 
 
 ## Install
 
-    go get github.com/blues/hub/jsonata/jsonata-go
+    go get github.com/blues/jsonata-go
 
 ## Usage
 
