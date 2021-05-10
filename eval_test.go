@@ -5,7 +5,6 @@
 package jsonata
 
 import (
-	"fmt"
 	"math"
 	"reflect"
 	"regexp"
@@ -4277,11 +4276,6 @@ func TestEvalName(t *testing.T) {
 			},
 		},
 	})
-}
-
-func _equalArraysUnordered(v1, v2 interface{}) bool {
-	fmt.Println("TODO: implement equalArraysUnordered")
-	return true
 }
 
 func testEvalTestCases(t *testing.T, tests []evalTestCase) {

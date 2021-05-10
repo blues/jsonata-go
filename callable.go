@@ -119,7 +119,7 @@ func validateGoCallableFunc(fn interface{}) error {
 	v := reflect.ValueOf(fn)
 
 	if v.Kind() != reflect.Func {
-		return fmt.Errorf("Func must be a Go function")
+		return fmt.Errorf("func must be a Go function")
 	}
 
 	t := v.Type()
@@ -127,10 +127,10 @@ func validateGoCallableFunc(fn interface{}) error {
 	case 1:
 	case 2:
 		if !t.Out(1).Implements(typeError) {
-			return fmt.Errorf("Func must return an error as its second value")
+			return fmt.Errorf("func must return an error as its second value")
 		}
 	default:
-		return fmt.Errorf("Func must return either 1 or 2 values")
+		return fmt.Errorf("func must return either 1 or 2 values")
 	}
 
 	return nil

@@ -1346,10 +1346,6 @@ var (
 	typeSequencePtr = reflect.PtrTo(typeSequence)
 )
 
-func isSequence(v reflect.Value) bool {
-	return v.IsValid() && jtypes.Resolve(v).Type() == typeSequence
-}
-
 func asSequence(v reflect.Value) (*sequence, bool) {
 	if !v.IsValid() || !v.CanInterface() {
 		return nil, false
