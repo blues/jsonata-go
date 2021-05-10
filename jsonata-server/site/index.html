@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JSONata Server</title>
+<link rel="icon" href="favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="assets/css/normalize.min.css" /> <!-- v7.0.0 -->
+<link rel="stylesheet" href="assets/css/codemirror.min.css" /> <!-- v5.32.0 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono" />
+<link rel="stylesheet" href="assets/css/styles.css" />
+<script src="assets/js/split.min.js"></script>
+<script src="assets/js/codemirror.min.js"></script> <!-- v5.32.0 -->
+<script src="assets/js/javascript.min.js"></script> <!-- v5.33.0 -->
+<script src="assets/js/jsonata-codemirror.js"></script>
+</head>
+<body>
+<header>
+<h1>JSONata Server</h1>
+<ul>
+<li><a href="javascript:reset('geo');">Geo</a></li>
+<li><a href="javascript:reset('invoice');">Invoice</a></li>
+<li><a href="javascript:reset('address');">Address</a></li>
+</ul>
+</header>
+<div class="main">
+<div id="left" class="split">
+<textarea id="input" placeholder="JSON"></textarea>
+</div>
+<div id="right" class="split">
+<div id="top">
+<textarea id="expr" autofocus placeholder="JSONata"></textarea>
+</div>
+<div id="bottom">
+<textarea id="output" readonly placeholder="Output"></textarea>
+</div>
+</div>
+</div>
+</body>
+<script>
+    window.onload = function() {
+
+        // Set up panes.
+
+        Split(["#left", "#right"], {
+            sizes: [50, 50],
+            gutterSize: 10
+        });
+
+        Split(["#top", "#bottom"], {
+            direction: "vertical",
+            sizes: [25, 75],
+            gutterSize: 10
+        });
+
+        // Set up CodeMirror edit boxes.
+
+        $input = CodeMirror.fromTextArea(document.getElementById("input"), {
+            mode: {name: "javascript", json: true},
+            lineNumbers: true
+        });
+
+        $expr = CodeMirror.fromTextArea(document.getElementById("expr"), {
+            mode: {name: 'jsonata', jsonata: window.jsonata, template: false},
+            viewportMargin: Infinity
+        });
+
+        $output = CodeMirror.fromTextArea(document.getElementById("output"), {
+            mode: {name: "javascript", json: true},
+            readOnly: true
+        });
+
+        // Populate panes.
+
+        reset("geo");
+
+        // Hook up events to recalculate after edits.
+
+        var timer;
+
+        $input.on("change", function() {
+            clearTimeout(timer);
+            timer = setTimeout(evaluate, 500);
+        });
+
+        $expr.on("change", function() {
+            clearTimeout(timer);
+            timer = setTimeout(evaluate, 500);
+        });
+    };
+
+    var evaluate = function() {
+
+        var body = new FormData();
+        body.set("json", $input.getValue());
+        body.set("expr", $expr.getValue());
+
+        fetch("/eval", {
+            method: "POST",
+            body: body
+        })
+
+        .then(function(response) {
+            if (response.ok) {
+                response.blob()
+
+                .then(function(blob) {
+                    var reader = new FileReader();
+                    reader.onload = function() {
+                        $output.setValue(reader.result);
+                    }
+                    reader.readAsText(blob);
+                });
+            } else {
+                response.text()
+
+                .then(function(text) {
+                    $output.setValue(text);
+                });
+            }
+        });
+    };
+
+    var reset = function(name) {
+        $input.setValue(inputs[name]);
+        $expr.setValue(exprs[name]);
+        evaluate();
+    };
+
+    /* IT'S JUST DATA BELOW HERE */
+
+    var exprs = {
+        "geo":
+`(
+	$extras := {
+        "device_uid": device
+    };
+
+    req = "note.add" and when ? $merge([body, $extras]) : $error("unexpected req/when")
+)`,
+        "invoice": `Account.Order[0].OrderID`,
+        "address": `FirstName & " " & Surname`
+    };
+
+    var inputs = {
+        "geo": `{
+    "req":"note.add",
+    "device":"sim32-1232353453453452346",
+    "app":"test1",
+    "file":"geiger.q",
+    "note":"abc123",
+    "by":"1",
+    "when":1512335179,
+    "where":"87JFH688+2GP",
+    "payload":"SGVsbG8sIHdvcmxkLg==",
+    "body":
+    {
+        "loc_olc":"87JFH688+2GP",
+        "env_temp":9.407184,
+        "env_humid":77.071495,
+        "env_press":1016.25323,
+        "bat_voltage":3.866328,
+        "bat_current":0.078125,
+        "bat_charge":64.42578,
+        "lnd_7318u":27.6,
+        "lnd_7318c":23.1,
+        "lnd_7128ec":9.3,
+        "pms_pm01_0":0,
+        "pms_pm02_5":0,
+        "pms_pm10_0":1,
+        "pms_c00_30":11076,
+        "pms_c00_50":3242,
+        "pms_c01_00":246,
+        "pms_c02_50":44,
+        "pms_c05_00":10,
+        "pms_c10_00":10,
+        "pms_csecs":118,
+        "opc_pm01_0":1.9840136,
+        "opc_pm02_5":3.9194343,
+        "opc_pm10_0":9.284608,
+        "opc_c00_38":139,
+        "opc_c00_54":154,
+        "opc_c01_00":121,
+        "opc_c02_10":30,
+        "opc_c05_00":3,
+        "opc_c10_00":0,
+        "opc_csecs":120
+    }
+}`,
+        "invoice": `{
+    "Account": {
+        "Account Name": "Firefly",
+        "Order": [
+            {
+                "OrderID": "order103",
+                "Product": [
+                    {
+                        "Product Name": "Bowler Hat",
+                        "ProductID": 858383,
+                        "SKU": "0406654608",
+                        "Description": {
+                            "Colour": "Purple",
+                            "Width": 300,
+                            "Height": 200,
+                            "Depth": 210,
+                            "Weight": 0.75
+                        },
+                        "Price": 34.45,
+                        "Quantity": 2
+                    },
+                    {
+                        "Product Name": "Trilby hat",
+                        "ProductID": 858236,
+                        "SKU": "0406634348",
+                        "Description": {
+                            "Colour": "Orange",
+                            "Width": 300,
+                            "Height": 200,
+                            "Depth": 210,
+                            "Weight": 0.6
+                        },
+                        "Price": 21.67,
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "OrderID": "order104",
+                "Product": [
+                    {
+                        "Product Name": "Bowler Hat",
+                        "ProductID": 858383,
+                        "SKU": "040657863",
+                        "Description": {
+                            "Colour": "Purple",
+                            "Width": 300,
+                            "Height": 200,
+                            "Depth": 210,
+                            "Weight": 0.75
+                        },
+                        "Price": 34.45,
+                        "Quantity": 4
+                    },
+                    {
+                        "ProductID": 345664,
+                        "SKU": "0406654603",
+                        "Product Name": "Cloak",
+                        "Description": {
+                            "Colour": "Black",
+                            "Width": 30,
+                            "Height": 20,
+                            "Depth": 210,
+                            "Weight": 2.0
+                        },
+                        "Price": 107.99,
+                        "Quantity": 1
+                    }
+                ]
+            }
+        ]
+    }
+}`,
+        "address": `{
+    "FirstName": "Fred",
+    "Surname": "Smith",
+    "Age": 28,
+    "Address": {
+        "Street": "Hursley Park",
+        "City": "Winchester",
+        "Postcode": "SO21 2JN"
+    },
+    "Phone": [
+        {
+            "type": "home",
+            "number": "0203 544 1234"
+        },
+        {
+            "type": "office",
+            "number": "01962 001234"
+        },
+        {
+            "type": "office",
+            "number": "01962 001235"
+        },
+        {
+            "type": "mobile",
+            "number": "077 7700 1234"
+        }
+    ],
+    "Email": [
+        {
+            "type": "work",
+            "address": ["fred.smith@my-work.com", "fsmith@my-work.com"]
+        },
+        {
+            "type": "home",
+            "address": ["freddy@my-social.com", "frederic.smith@very-serious.com"]
+        }
+    ],
+    "Other": {
+        "Over 18 ?": true,
+        "Misc": null,
+        "Alternative.Address": {
+            "Street": "Brick Lane",
+            "City": "London",
+            "Postcode": "E1 6RF"
+        }
+    }
+}`
+    };
+</script>
+</html>
