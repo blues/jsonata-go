@@ -146,21 +146,21 @@ const (
 )
 
 func lookupNud(tt tokenType) nud {
-	if tt < 0 || tt >= nudCount {
+	if tt >= nudCount {
 		return nil
 	}
 	return nuds[tt]
 }
 
 func lookupLed(tt tokenType) led {
-	if tt < 0 || tt >= ledCount {
+	if tt >= ledCount {
 		return nil
 	}
 	return leds[tt]
 }
 
 func lookupBp(tt tokenType) int {
-	if tt < 0 || tt >= ledCount {
+	if tt >= ledCount {
 		return 0
 	}
 	return bps[tt]

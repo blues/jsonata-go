@@ -358,7 +358,7 @@ func validateSubpictureParts(parts subpictureParts, format *DecimalFormat) error
 	pos := strings.IndexFunc(parts.Integer, isDecimalDigit)
 	if pos != -1 {
 		pos += utf8.RuneLen(format.ZeroDigit)
-		if strings.IndexRune(parts.Integer[pos:], format.OptionalDigit) != -1 {
+		if strings.ContainsRune(parts.Integer[pos:], format.OptionalDigit) {
 			return fmt.Errorf("an integer part cannot contain a decimal digit followed by an optional digit")
 		}
 	}
@@ -670,7 +670,7 @@ func splitStringAtRune(s string, r rune) (string, string) {
 		return s, ""
 	}
 
-	if s2 := s[pos+utf8.RuneLen(r):]; strings.IndexRune(s2, r) == -1 {
+	if s2 := s[pos+utf8.RuneLen(r):]; !strings.ContainsRune(s2, r) {
 		return s[:pos], s2
 	}
 

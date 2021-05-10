@@ -29,7 +29,7 @@ func Boolean(v reflect.Value) bool {
 
 	if jtypes.IsArray(v) {
 		for i := 0; i < v.Len(); i++ {
-			if Boolean(v.Index(i)) == true {
+			if Boolean(v.Index(i)) {
 				return true
 			}
 		}

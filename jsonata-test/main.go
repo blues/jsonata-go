@@ -139,7 +139,7 @@ func runTest(tc testCase, dataDir string, path string) (bool, error) {
 
 	var failed bool
 	expr, unQuoted := replaceQuotesInPaths(tc.Expr)
-	got, err := eval(expr, tc.Bindings, data)
+	got, _ := eval(expr, tc.Bindings, data)
 
 	if !equalResults(got, tc.Result) {
 		failed = true
@@ -161,16 +161,18 @@ func runTest(tc testCase, dataDir string, path string) (bool, error) {
 		fmt.Fprintf(os.Stderr, "Actual Result:   %v [%T]\n", got, got)
 	}
 
-	var exp error
-	if tc.Undefined {
-		exp = jsonata.ErrUndefined
-	} else {
-		exp = convertError(tc.Error)
-	}
+	// TODO this block is commented out to make staticcheck happy,
+	// but we should check that the error is the same as the js one
+	// var exp error
+	// if tc.Undefined {
+	// 	exp = jsonata.ErrUndefined
+	// } else {
+	// 	exp = convertError(tc.Error)
+	// }
 
-	if !reflect.DeepEqual(err, exp) {
-		// TODO: Compare actual/expected errors
-	}
+	// if !reflect.DeepEqual(err, exp) {
+	// TODO: Compare actual/expected errors
+	// }
 
 	return failed, nil
 }

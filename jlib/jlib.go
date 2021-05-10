@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"math/rand"
 	"reflect"
-	"regexp"
 	"time"
 
 	"github.com/blues/jsonata-go/jtypes"
@@ -20,7 +19,6 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-var typeRegex = reflect.TypeOf((*regexp.Regexp)(nil))
 var typeBool = reflect.TypeOf((*bool)(nil)).Elem()
 var typeCallable = reflect.TypeOf((*jtypes.Callable)(nil)).Elem()
 var typeString = reflect.TypeOf((*string)(nil)).Elem()
