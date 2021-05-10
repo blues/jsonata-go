@@ -23,6 +23,6 @@ jobs:
     - name: Run staticcheck
       run: staticcheck .
     - name: Check code formatting
-      run: goimports -l .
+      run: test -z $(goimports -l .)
     - name: Run Test
       run: go test ./...
