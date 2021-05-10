@@ -67,7 +67,7 @@ A CLI tool for running jsonata-go against the [JSONata test suite](https://githu
 
 We love issues, fixes, and pull requests from everyone. Please run the
 unit-tests, golint, and goimports prior to submitting your PR. By participating in this project, you agree to abide by
-the Blues Inc [code of conduct].
+the Blues Inc [code of conduct](https://blues.github.io/opensource/code-of-conduct).
 
 For details on contributions we accept and the process for contributing, see our
 [contribution guide](CONTRIBUTING.md).
