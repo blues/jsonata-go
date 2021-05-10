@@ -16,13 +16,13 @@ jobs:
       uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-        go get -u golang.org/x/lint/golint
+        go get -u honnef.co/go/tools/cmd/staticcheck@latest
         go get -u golang.org/x/tools/cmd/goimports
     - name: Build
       run: go build .
-    - name: Lint
-      run: go lint ./...
-    - name: Code formatting
+    - name: Run staticcheck
+      run: staticcheck .
+    - name: Check code formatting
       run: goimports -l .
-    - name: Test
+    - name: Run Test
       run: go test ./...
