@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -321,16 +320,6 @@ func equalResults(x, y interface{}) bool {
 	}
 
 	return false
-}
-
-var errTodo = errors.New("TODO")
-
-func convertError(code string) error {
-	if code == "" {
-		return nil
-	}
-
-	return errTodo
 }
 
 func readJSONFile(path string, dest interface{}) error {
