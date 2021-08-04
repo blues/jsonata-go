@@ -59,7 +59,7 @@ A locally hosted version of [JSONata Exerciser](http://try.jsonata.org/)
 for testing is [available here](https://github.com/blues/jsonata-go/jsonata-server).
 
 ## JSONata tests
-A CLI tool for running jsonata-go against the [JSONata test suite](https://github.com/jsonata-js/jsonata/tree/master/test/test-suite) is [available here](https://github.com/blues/jsonata-go/jsonata-test).
+A CLI tool for running jsonata-go against the [JSONata test suite](https://github.com/jsonata-js/jsonata/tree/master/test/test-suite) is [available here](./jsonata-test).
 
 
 
@@ -73,7 +73,7 @@ For details on contributions we accept and the process for contributing, see our
 [contribution guide](CONTRIBUTING.md).
 
 In addition to the Go unit tests there is also a test runner that will run against the jsonata-js test
-suite in the [jsonata-test](https://github.com/blues/jsonata-go/jsonata-test) directory. A number of these tests currently fail, but we're working towards feature parity with the jsonata-js reference implementation. Pull requests welcome!
+suite in the [jsonata-test](./jsonata-test) directory. A number of these tests currently fail, but we're working towards feature parity with the jsonata-js reference implementation. Pull requests welcome!
 
 If you would like to contribute to this library a good first issue would be to run the jsonata-test suite,
 and fix any of the tests not passing.
