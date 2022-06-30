@@ -6,16 +6,16 @@ import (
 )
 
 // Distinct - a function that you can pass an array of json objects through to remove exact duplicates
-func Distinct(input interface{}) ([]map[string]interface{}, error) {
-	if _, ok := input.([]map[string]interface{}); !ok {
+func Distinct(input interface{}) (interface{}, error) {
+	if _, ok := input.([]interface{}); !ok {
 		return nil, fmt.Errorf("distinct can only be applied to an array of JSON objects")
 	}
 
-	jsonArray := input.([]map[string]interface{})
+	jsonArray := input.([]interface{})
+
+	output := make([]interface{}, 0)
 
 	deduper := make(map[string]struct{})
-
-	output := make([]map[string]interface{}, 0)
 
 	for key := range jsonArray {
 		bytes, err := json.Marshal(jsonArray[key])
@@ -32,5 +32,5 @@ func Distinct(input interface{}) ([]map[string]interface{}, error) {
 		}
 	}
 
-	return output
+	return output, nil
 }
