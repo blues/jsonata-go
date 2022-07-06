@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/blues/jsonata-go/config"
+	"github.com/tbal999/jsonata-go/config"
 	"github.com/blues/jsonata-go/jlib"
 	"github.com/blues/jsonata-go/jparse"
 	"github.com/blues/jsonata-go/jtypes"
