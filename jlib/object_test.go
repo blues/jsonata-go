@@ -12,8 +12,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/blues/jsonata-go/jlib"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/tbal999/jsonata-go/jlib"
+	"github.com/tbal999/jsonata-go/jtypes"
 )
 
 type eachTest struct {

@@ -4,7 +4,7 @@ A CLI tool for running jsonata-go against the [JSONata test suite](https://githu
 
 ## Install
 
-    go install github.com/blues/jsonata-test
+    go install github.com/tbal999/jsonata-test
 
 ## Usage
 

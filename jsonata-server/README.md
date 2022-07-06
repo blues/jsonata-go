@@ -1,11 +1,11 @@
 # JSONata Server
 
 A locally hosted version of [JSONata Exerciser](http://try.jsonata.org/)
-for testing [jsonata-go](https://github.com/blues/jsonata).
+for testing [jsonata-go](https://github.com/tbal999/jsonata).
 
 ## Install
 
-    go install github.com/blues/jsonata-go/jsonata-server
+    go install github.com/tbal999/jsonata-go/jsonata-server
 
 ## Usage
 

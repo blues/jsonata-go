@@ -11,9 +11,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/blues/jsonata-go/jlib"
-	"github.com/blues/jsonata-go/jparse"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/tbal999/jsonata-go/jlib"
+	"github.com/tbal999/jsonata-go/jparse"
+	"github.com/tbal999/jsonata-go/jtypes"
 )
 
 type environment struct {

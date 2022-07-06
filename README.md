@@ -7,7 +7,7 @@ It currently has feature parity with jsonata-js 1.5.4. As well as a most of the 
 
 ## Install
 
-    go get github.com/blues/jsonata-go
+    go get github.com/tbal999/jsonata-go
 
 ## Usage
 
@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"log"
 
-	jsonata "github.com/blues/jsonata-go"
+	jsonata "github.com/tbal999/jsonata-go"
 )
 
 const jsonString = `
@@ -56,7 +56,7 @@ func main() {
 
 ## JSONata Server
 A locally hosted version of [JSONata Exerciser](http://try.jsonata.org/)
-for testing is [available here](https://github.com/blues/jsonata-go/jsonata-server).
+for testing is [available here](https://github.com/tbal999/jsonata-go/jsonata-server).
 
 ## JSONata tests
 A CLI tool for running jsonata-go against the [JSONata test suite](https://github.com/jsonata-js/jsonata/tree/master/test/test-suite) is [available here](./jsonata-test).
@@ -67,7 +67,7 @@ A CLI tool for running jsonata-go against the [JSONata test suite](https://githu
 
 We love issues, fixes, and pull requests from everyone. Please run the
 unit-tests, staticcheck, and goimports prior to submitting your PR. By participating in this project, you agree to abide by
-the Blues Inc [code of conduct](https://blues.github.io/opensource/code-of-conduct).
+the Blues Inc [code of conduct](https://tbal999.github.io/opensource/code-of-conduct).
 
 For details on contributions we accept and the process for contributing, see our
 [contribution guide](CONTRIBUTING.md).

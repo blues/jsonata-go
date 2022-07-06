@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/tbal999/jsonata-go/jtypes"
 )
 
 // typeInterfaceMap is the reflect.Type for map[string]interface{}.
