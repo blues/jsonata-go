@@ -10,9 +10,11 @@ import (
 	"reflect"
 	"sort"
 
+	"github.com/blues/jsonata-go/config"
 	"github.com/blues/jsonata-go/jlib"
 	"github.com/blues/jsonata-go/jparse"
 	"github.com/blues/jsonata-go/jtypes"
+	"github.com/shopspring/decimal"
 )
 
 var undefined reflect.Value
@@ -990,19 +992,24 @@ func evalNumericOperator(node *jparse.NumericOperatorNode, data reflect.Value, e
 		return undefined, nil
 	}
 
+	lhsDecimal, rhsDecimal := decimal.NewFromFloat(lhs), decimal.NewFromFloat(rhs)
+
 	var x float64
 
 	switch node.Type {
 	case jparse.NumericAdd:
-		x = lhs + rhs
+		x = lhsDecimal.Add(rhsDecimal).RoundCeil(config.GetDivisionPrecision()).InexactFloat64()
 	case jparse.NumericSubtract:
-		x = lhs - rhs
+		x = lhsDecimal.Sub(rhsDecimal).RoundCeil(config.GetDivisionPrecision()).InexactFloat64()
 	case jparse.NumericMultiply:
-		x = lhs * rhs
+		x = lhsDecimal.Mul(rhsDecimal).Truncate(config.GetDivisionPrecision()).InexactFloat64()
 	case jparse.NumericDivide:
 		x = lhs / rhs
+		if !math.IsInf(x, 0) && !math.IsNaN(x) {
+			x = lhsDecimal.Div(rhsDecimal).RoundCeil(config.GetDivisionPrecision()).InexactFloat64()
+		}
 	case jparse.NumericModulo:
-		x = math.Mod(lhs, rhs)
+		x = lhsDecimal.Mod(rhsDecimal).Truncate(config.GetDivisionPrecision()).InexactFloat64()
 	default:
 		panicf("unrecognised numeric operator %q", node.Type)
 	}
