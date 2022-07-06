@@ -13,9 +13,9 @@ import (
 	"unicode"
 	"regexp"
 
-	"github.com/tbal999/jsonata-go/jlib"
-	"github.com/tbal999/jsonata-go/jparse"
-	"github.com/tbal999/jsonata-go/jtypes"
+	"github.com/blues/jsonata-go/jlib"
+	"github.com/blues/jsonata-go/jparse"
+	"github.com/blues/jsonata-go/jtypes"
 )
 
 var (
