@@ -97,7 +97,9 @@ type Expr struct {
 // of type jparse.Error.
 func Compile(expr string) (*Expr, error) {
 
-	node, err := jparse.Parse(expr)
+	cleanExpr := replaceQuotesAndCommentsInPaths(expr)
+
+	node, err := jparse.Parse(cleanExpr)
 	if err != nil {
 		return nil, err
 	}
@@ -378,4 +380,26 @@ func isLetter(r rune) bool {
 
 func isDigit(r rune) bool {
 	return (r >= '0' && r <= '9') || unicode.IsDigit(r)
+}
+
+var (
+	reQuotedPath      = regexp.MustCompile(`([A-Za-z\$\\*\` + "`" + `])\.[\"']([\s\S]+?)[\"']`)
+	reQuotedPathStart = regexp.MustCompile(`^[\"']([ \.0-9A-Za-z]+?)[\"']\.([A-Za-z\$\*\"\'])`)
+	commentsPath      = regexp.MustCompile(`\/\*([\s\S]*?)\*\/`)
+)
+
+func replaceQuotesAndCommentsInPaths(s string) string {
+	if reQuotedPathStart.MatchString(s) {
+		s = reQuotedPathStart.ReplaceAllString(s, "`$1`.$2")
+	}
+
+	for reQuotedPath.MatchString(s) {
+		s = reQuotedPath.ReplaceAllString(s, "$1.`$2`")
+	}
+
+	for commentsPath.MatchString(s) {
+		s = commentsPath.ReplaceAllString(s, "")
+	}
+
+	return s
 }
