@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 	"unicode"
-	"regexp"
 
 	"github.com/blues/jsonata-go/jlib"
 	"github.com/blues/jsonata-go/jparse"
@@ -379,35 +378,4 @@ func isLetter(r rune) bool {
 
 func isDigit(r rune) bool {
 	return (r >= '0' && r <= '9') || unicode.IsDigit(r)
-}
-
-
-/* 
-	taken from the jsonata-test section and modified so that comments (like this one) can be written in the code
-	enables:
-	- comments in jsonata code
-	- fields with any character in their name i.e 'Field #' or "$ CURRENCY"
-*/
-
-var (
-	reQuotedPath      = regexp.MustCompile(`([A-Za-z\$\\*\` + "`" + `])\.[\"']([\s\S]+?)[\"']`)
-	reQuotedPathStart = regexp.MustCompile(`^[\"']([ \.0-9A-Za-z]+?)[\"']\.([A-Za-z\$\*\"\'])`)
-	commentsPath      = regexp.MustCompile(`\/\*([\s\S]*?)\*\/`)
-)
-
-// Clean - processes / cleans the jsonata query prior to being used in an Eval statement
-func Clean(s string) string {
-	if reQuotedPathStart.MatchString(s) {
-		s = reQuotedPathStart.ReplaceAllString(s, "`$1`.$2")
-	}
-
-	for reQuotedPath.MatchString(s) {
-		s = reQuotedPath.ReplaceAllString(s, "$1.`$2`")
-	}
-
-	for commentsPath.MatchString(s) {
-		s = commentsPath.ReplaceAllString(s, "")
-	}
-
-	return s
 }
