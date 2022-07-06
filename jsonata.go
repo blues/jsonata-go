@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 	"unicode"
-
+	"regexp"
 	"github.com/tbal999/jsonata-go/jlib"
 	"github.com/tbal999/jsonata-go/jparse"
 	"github.com/tbal999/jsonata-go/jtypes"
