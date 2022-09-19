@@ -12,8 +12,8 @@ import (
 	"regexp"
 	"strings"
 
-	jsonata "github.com/blues/jsonata-go"
-	types "github.com/blues/jsonata-go/jtypes"
+	jsonata "github.com/xiatechs/jsonata-go"
+	types "github.com/xiatechs/jsonata-go/jtypes"
 )
 
 type testCase struct {

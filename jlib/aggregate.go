@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/blues/jsonata-go/config"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/config"
+	"github.com/xiatechs/jsonata-go/jtypes"
 	"github.com/shopspring/decimal"
 )
 
