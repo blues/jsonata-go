@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/shopspring/decimal"
 	"github.com/xiatechs/jsonata-go/config"
 	"github.com/xiatechs/jsonata-go/jtypes"
-	"github.com/shopspring/decimal"
 )
 
 // Sum returns the total of an array of numbers. If the array is

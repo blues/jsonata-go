@@ -7,8 +7,8 @@ package jsonata
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"reflect"
+	"regexp"
 	"sync"
 	"time"
 	"unicode"
@@ -382,7 +382,7 @@ func isDigit(r rune) bool {
 	return (r >= '0' && r <= '9') || unicode.IsDigit(r)
 }
 
-/* 
+/*
 	enables:
 	- comments in jsonata code
 	- fields with any character in their name

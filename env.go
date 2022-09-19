@@ -76,7 +76,7 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		UndefinedHandler:   defaultUndefinedHandler,
 		EvalContextHandler: defaultContextHandler,
 	},
-	
+
 	/*
 		EXTENDED END
 	*/

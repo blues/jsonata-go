@@ -1,8 +1,8 @@
 package jlib
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 )
 
 // Unescape an escaped json string into JSON (once)

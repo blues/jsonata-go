@@ -10,11 +10,11 @@ import (
 	"reflect"
 	"sort"
 
+	"github.com/shopspring/decimal"
 	"github.com/xiatechs/jsonata-go/config"
 	"github.com/xiatechs/jsonata-go/jlib"
 	"github.com/xiatechs/jsonata-go/jparse"
 	"github.com/xiatechs/jsonata-go/jtypes"
-	"github.com/shopspring/decimal"
 )
 
 var undefined reflect.Value
