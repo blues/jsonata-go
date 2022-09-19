@@ -11,9 +11,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/blues/jsonata-go/jlib"
-	"github.com/blues/jsonata-go/jparse"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/jlib"
+	"github.com/xiatechs/jsonata-go/jparse"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 type environment struct {
@@ -66,6 +66,20 @@ var (
 )
 
 var baseEnv = initBaseEnv(map[string]Extension{
+
+	/*
+		EXTENDED START
+	*/
+
+	"unescape": {
+		Func:               jlib.Unescape,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
+	/*
+		EXTENDED END
+	*/
 
 	// String functions
 

@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/blues/jsonata-go/jlib/jxpath"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/jlib/jxpath"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 // 2006-01-02T15:04:05.000Z07:00

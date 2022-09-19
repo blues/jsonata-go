@@ -14,8 +14,8 @@ import (
 	_ "net/http/pprof"
 	"strings"
 
-	jsonata "github.com/blues/jsonata-go"
-	"github.com/blues/jsonata-go/jtypes"
+	jsonata "github.com/xiatechs/jsonata-go"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 func init() {
@@ -52,7 +52,6 @@ func main() {
 }
 
 func evaluate(w http.ResponseWriter, r *http.Request) {
-
 	input := strings.TrimSpace(r.FormValue("json"))
 	if input == "" {
 		http.Error(w, "Input is empty", http.StatusBadRequest)
@@ -78,7 +77,6 @@ func evaluate(w http.ResponseWriter, r *http.Request) {
 }
 
 func eval(input, expression string) (b []byte, status int, err error) {
-
 	defer func() {
 		if r := recover(); r != nil {
 			b = nil

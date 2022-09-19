@@ -1,4 +1,4 @@
-module github.com/blues/jsonata-go
+module github.com/xiatechs/jsonata-go
 
 go 1.16
 

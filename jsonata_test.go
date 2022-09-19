@@ -19,8 +19,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/blues/jsonata-go/jparse"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/jparse"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 type testCase struct {

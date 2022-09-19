@@ -7,15 +7,15 @@ package jsonata
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"reflect"
+	"regexp"
 	"sync"
 	"time"
 	"unicode"
 
-	"github.com/blues/jsonata-go/jlib"
-	"github.com/blues/jsonata-go/jparse"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/jlib"
+	"github.com/xiatechs/jsonata-go/jparse"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 var (
@@ -382,7 +382,7 @@ func isDigit(r rune) bool {
 	return (r >= '0' && r <= '9') || unicode.IsDigit(r)
 }
 
-/* 
+/*
 	enables:
 	- comments in jsonata code
 	- fields with any character in their name
