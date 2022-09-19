@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-// Unescape a string into JSON - simple but powerful
+// Unescape an escaped json string into JSON (once)
 func Unescape(input string) (interface{}, error) {
 	var output interface{}
 

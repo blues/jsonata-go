@@ -70,11 +70,13 @@ var baseEnv = initBaseEnv(map[string]Extension{
 	/*
 		EXTENDED START
 	*/
+
 	"unescape": {
 		Func:               jlib.Unescape,
 		UndefinedHandler:   defaultUndefinedHandler,
 		EvalContextHandler: defaultContextHandler,
 	},
+	
 	/*
 		EXTENDED END
 	*/
