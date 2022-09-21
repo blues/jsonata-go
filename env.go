@@ -71,6 +71,12 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		EXTENDED START
 	*/
 
+	"ljoin": {
+		Func:               jlib.LJoin,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
 	"unescape": {
 		Func:               jlib.Unescape,
 		UndefinedHandler:   defaultUndefinedHandler,
