@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // Unescape an escaped json string into JSON (once)
@@ -22,9 +23,8 @@ func getVal(input interface{}) string {
 	return fmt.Sprintf("%v", input)
 }
 
-
-// LJoin (golint)
-func LJoin(v, v2 reflect.Value, field1, field2 string) (interface{}, error) {
+// SimpleJoin - a 1 key left join very simple and useful in certain circumstances
+func SimpleJoin(v, v2 reflect.Value, field1, field2 string) (interface{}, error) {
 	output := make([]interface{}, 0)
 
 	i1, ok := v.Interface().([]interface{})
@@ -36,6 +36,24 @@ func LJoin(v, v2 reflect.Value, field1, field2 string) (interface{}, error) {
 	if !ok {
 		return nil, fmt.Errorf("both objects must be slice of objects")
 	}
+
+	field1Arr := strings.Split(field1, "|") // todo: only works as an OR atm and only 1 dimension deep
+
+	field2Arr := strings.Split(field2, "|")
+
+	if len(field1Arr) != len(field2Arr) {
+		return nil, fmt.Errorf("field arrays must be same length")
+	}
+
+	for index := range field1Arr {
+		output = append(output, addItems(i1, i2, field1Arr[index], field2Arr[index])...)
+	}
+
+	return output, nil
+}
+
+func addItems(i1, i2 []interface{}, field1, field2 string) []interface{} {
+	output := make([]interface{}, 0)
 
 	for a := range i1 {
 		item1, ok := i1[a].(map[string]interface{})
@@ -50,7 +68,7 @@ func LJoin(v, v2 reflect.Value, field1, field2 string) (interface{}, error) {
 			if !ok {
 				continue
 			}
-			
+
 			f2 := item2[field2]
 			if f1 == f2 {
 				newitem := make(map[string]interface{})
@@ -65,5 +83,26 @@ func LJoin(v, v2 reflect.Value, field1, field2 string) (interface{}, error) {
 		}
 	}
 
-	return output, nil
+	return output
+}
+
+// ObjMerge - merge two map[string]interface{} objects together - if they have unique keys
+func ObjMerge(i1, i2 interface{}) interface{} {
+	output := make(map[string]interface{})
+
+	merge1, ok1 := i1.(map[string]interface{})
+	merge2, ok2 := i2.(map[string]interface{})
+	if !ok1 || !ok2 {
+		return output
+	}
+
+	for key := range merge1 {
+		output[key] = merge1[key]
+	}
+
+	for key := range merge2 {
+		output[key] = merge2[key]
+	}
+
+	return output
 }
