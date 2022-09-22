@@ -71,6 +71,18 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		EXTENDED START
 	*/
 
+	"objmerge": {
+		Func:               jlib.ObjMerge,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
+	"sjoin": {
+		Func:               jlib.SimpleJoin,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
 	"unescape": {
 		Func:               jlib.Unescape,
 		UndefinedHandler:   defaultUndefinedHandler,
