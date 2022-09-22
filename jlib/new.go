@@ -22,6 +22,7 @@ func getVal(input interface{}) string {
 	return fmt.Sprintf("%v", input)
 }
 
+
 // LJoin (golint)
 func LJoin(v, v2 reflect.Value, field1, field2 string) (interface{}, error) {
 	output := make([]interface{}, 0)
