@@ -61,6 +61,8 @@ func addItems(i1, i2 []interface{}, field1, field2 string) []interface{} {
 			continue
 		}
 
+		var exists bool
+
 		f1 := item1[field1]
 
 		for b := range i2 {
@@ -71,6 +73,7 @@ func addItems(i1, i2 []interface{}, field1, field2 string) []interface{} {
 
 			f2 := item2[field2]
 			if f1 == f2 {
+				exists = true
 				newitem := make(map[string]interface{})
 				for key := range item1 {
 					newitem[key] = item1[key]
@@ -78,8 +81,13 @@ func addItems(i1, i2 []interface{}, field1, field2 string) []interface{} {
 				for key := range item2 {
 					newitem[key] = item2[key]
 				}
+
 				output = append(output, newitem)
 			}
+		}
+
+		if !exists {
+            output = append(output, item1)
 		}
 	}
 
