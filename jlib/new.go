@@ -3,7 +3,6 @@ package jlib
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 )
@@ -145,7 +144,6 @@ func getMapStringValue(fieldArr []string, index int, item interface{}) interface
 
 	if obj, ok := item.(map[string]interface{}); ok {
 		for key := range obj {
-			log.Println(fieldArr[index], key)
 			if key == fieldArr[index] {
 				if len(fieldArr)-1 == index {
 					return obj[key]
@@ -172,7 +170,6 @@ func getArrayValue(fieldArr []string, index int, item interface{}) interface{} {
 		for value := range obj {
 			a := fmt.Sprintf("%v", fieldArr[index])
 			b := fmt.Sprintf("%v", obj[value])
-			log.Println(a, b)
 			if a == b {
 				if len(fieldArr)-1 == index {
 					return item
