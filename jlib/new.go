@@ -94,7 +94,7 @@ func (r *relation) generateItem() map[string]interface{} {
 		}
 
 	}
-	
+
 	return newitem
 }
 

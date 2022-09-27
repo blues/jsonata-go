@@ -27,29 +27,29 @@ func TestSJoin(t *testing.T) {
 					"id": 1,
 					"name": "Tim"
 					}}]`,
-			joinStr1: "id",
-			joinStr2: "id",
+			joinStr1:       "id",
+			joinStr2:       "id",
 			expectedOutput: "[{\"test\":{\"age\":5,\"id\":1}}]",
 		},
 		{
 			description: "nested join",
-			object1: `[{"test": {
-				"id": 1,
-				"age": 5
-				}}]`,
+			object1: `[
+				{
+				 "age": 5,
+				 "id": 1
+				}
+			   ]`,
 			object2: `[
 				{
-				   "object":{
-					  "test":{
-						 "id":1,
-						 "name":"Tim"
-					  }
-				   }
+				 "test": {
+				  "id": 1,
+				  "name": "Tim"
+				 }
 				}
-			 ]`,
-			joinStr1: "id",
-			joinStr2: "test¬id",
-			expectedOutput: "[{\"test\":{\"age\":5,\"id\":1}}]",
+			   ]`,
+			joinStr1:       "id",
+			joinStr2:       "test¬id",
+			expectedOutput: "[{\"age\":5,\"id\":1,\"test\":{\"id\":1,\"name\":\"Tim\"}}]",
 		},
 	}
 	for _, tt := range tests {
