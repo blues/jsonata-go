@@ -1,9 +1,9 @@
 package jlib
 
 import (
-	"log"
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 )
@@ -89,13 +89,13 @@ func (r *relation) generateItem() map[string]interface{} {
 		for index := range r.related {
 			if val, ok := r.related[index].(map[string]interface{}); ok {
 				for key := range val {
-						newitem[key] = val[key]
+					newitem[key] = val[key]
 				}
 			}
+		}
+
 	}
-
-
-
+	
 	return newitem
 }
 
@@ -189,7 +189,6 @@ func getArrayValue(fieldArr []string, index int, item interface{}) interface{} {
 
 	return getSingleValue(fieldArr, index, item)
 }
-
 
 func getSingleValue(fieldArr []string, index int, item interface{}) interface{} {
 	if outsideRange(fieldArr, index) {
