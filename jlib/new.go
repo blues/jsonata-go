@@ -1,6 +1,7 @@
 package jlib
 
 import (
+	"log"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -23,9 +24,16 @@ func getVal(input interface{}) string {
 	return fmt.Sprintf("%v", input)
 }
 
-// SimpleJoin - a 1 key left join very simple and useful in certain circumstances
+const (
+	arrDelimiter = "|"
+	keyDelimiter = "¬"
+)
+
+// SimpleJoin - a multi-key multi-level full OR join - very simple and useful in certain circumstances
 func SimpleJoin(v, v2 reflect.Value, field1, field2 string) (interface{}, error) {
-	output := make([]interface{}, 0)
+	if !(v.IsValid() && v.CanInterface() && v2.IsValid() && v2.CanInterface()) {
+		return nil, nil
+	}
 
 	i1, ok := v.Interface().([]interface{})
 	if !ok {
@@ -37,61 +45,172 @@ func SimpleJoin(v, v2 reflect.Value, field1, field2 string) (interface{}, error)
 		return nil, fmt.Errorf("both objects must be slice of objects")
 	}
 
-	field1Arr := strings.Split(field1, "|") // todo: only works as an OR atm and only 1 dimension deep
+	field1Arr := strings.Split(field1, arrDelimiter) // todo: only works as an OR atm
 
-	field2Arr := strings.Split(field2, "|")
+	field2Arr := strings.Split(field2, arrDelimiter)
 
 	if len(field1Arr) != len(field2Arr) {
 		return nil, fmt.Errorf("field arrays must be same length")
 	}
 
+	relationMap := make(map[string]*relation)
+
 	for index := range field1Arr {
-		output = append(output, addItems(i1, i2, field1Arr[index], field2Arr[index])...)
+		addItems(relationMap, i1, i2, field1Arr[index], field2Arr[index])
+	}
+
+	output := make([]interface{}, 0)
+
+	for index := range relationMap {
+		output = append(output, relationMap[index].generateItem())
 	}
 
 	return output, nil
 }
 
-func addItems(i1, i2 []interface{}, field1, field2 string) []interface{} {
-	output := make([]interface{}, 0)
+type relation struct {
+	object  map[string]interface{}
+	related []interface{}
+}
 
+func newRelation(input map[string]interface{}) *relation {
+	return &relation{
+		object:  input,
+		related: make([]interface{}, 0),
+	}
+}
+
+func (r *relation) generateItem() map[string]interface{} {
+	newitem := make(map[string]interface{})
+
+	for key := range r.object {
+		newitem[key] = r.object[key]
+
+		for index := range r.related {
+			if val, ok := r.related[index].(map[string]interface{}); ok {
+				for key := range val {
+						newitem[key] = val[key]
+				}
+			}
+	}
+
+
+
+	return newitem
+}
+
+func addItems(relationMap map[string]*relation, i1, i2 []interface{}, field1, field2 string) {
 	for a := range i1 {
 		item1, ok := i1[a].(map[string]interface{})
 		if !ok {
 			continue
 		}
 
-		var exists bool
+		key := fmt.Sprintf("%v", item1)
 
-		f1 := item1[field1]
+		if _, ok := relationMap[key]; !ok {
+			relationMap[key] = newRelation(item1)
+		}
+
+		rel := relationMap[key]
+
+		f1 := getMapStringValue(strings.Split(field1, keyDelimiter), 0, item1)
+		if f1 == nil {
+			continue
+		}
 
 		for b := range i2 {
-			item2, ok := i2[b].(map[string]interface{})
-			if !ok {
+			f2 := getMapStringValue(strings.Split(field2, keyDelimiter), 0, i2[b])
+			if f2 == nil {
 				continue
 			}
 
-			f2 := item2[field2]
 			if f1 == f2 {
-				exists = true
-				newitem := make(map[string]interface{})
-				for key := range item1 {
-					newitem[key] = item1[key]
-				}
-				for key := range item2 {
-					newitem[key] = item2[key]
-				}
-
-				output = append(output, newitem)
+				rel.related = append(rel.related, i2[b])
 			}
 		}
 
-		if !exists {
-            output = append(output, item1)
+		relationMap[key] = rel
+	}
+}
+
+func outsideRange(fieldArr []string, index int) bool {
+	return index > len(fieldArr)-1
+}
+
+func getMapStringValue(fieldArr []string, index int, item interface{}) interface{} {
+	if outsideRange(fieldArr, index) {
+		return nil
+	}
+
+	if obj, ok := item.(map[string]interface{}); ok {
+		for key := range obj {
+			log.Println(fieldArr[index], key)
+			if key == fieldArr[index] {
+				if len(fieldArr)-1 == index {
+					return obj[key]
+				} else {
+					index++
+					new := getMapStringValue(fieldArr, index, obj[key])
+					if new != nil {
+						return new
+					}
+				}
+			}
 		}
 	}
 
-	return output
+	return getArrayValue(fieldArr, index, item)
+}
+
+func getArrayValue(fieldArr []string, index int, item interface{}) interface{} {
+	if outsideRange(fieldArr, index) {
+		return nil
+	}
+
+	if obj, ok := item.([]interface{}); ok {
+		for value := range obj {
+			a := fmt.Sprintf("%v", fieldArr[index])
+			b := fmt.Sprintf("%v", obj[value])
+			log.Println(a, b)
+			if a == b {
+				if len(fieldArr)-1 == index {
+					return item
+				} else {
+					index++
+					new := getMapStringValue(fieldArr, index, obj)
+					if new != nil {
+						return new
+					}
+				}
+			}
+		}
+	}
+
+	return getSingleValue(fieldArr, index, item)
+}
+
+
+func getSingleValue(fieldArr []string, index int, item interface{}) interface{} {
+	if outsideRange(fieldArr, index) {
+		return nil
+	}
+
+	a := fmt.Sprintf("%v", fieldArr[index])
+	b := fmt.Sprintf("%v", item)
+	if a == b {
+		if len(fieldArr)-1 == index {
+			return item
+		} else {
+			index++
+			new := getMapStringValue(fieldArr, index, item)
+			if new != nil {
+				return new
+			}
+		}
+	}
+
+	return nil
 }
 
 // ObjMerge - merge two map[string]interface{} objects together - if they have unique keys
