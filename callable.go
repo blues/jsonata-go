@@ -18,7 +18,7 @@ import (
 )
 
 type callableName struct {
-	mu sync.Mutex
+	mu   sync.Mutex
 	name string
 }
 
