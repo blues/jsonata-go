@@ -18,6 +18,7 @@ import (
 )
 
 type callableName struct {
+	mu sync.Mutex
 	name string
 }
 
@@ -26,8 +27,8 @@ func (n callableName) Name() string {
 }
 
 func (n *callableName) SetName(s string) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	n.mu.Lock()
+	defer n.mu.Unlock()
 	n.name = s
 }
 
