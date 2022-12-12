@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/xiatechs/jsonata-go/jparse"
@@ -2371,6 +2372,7 @@ func TestRegexCallable(t *testing.T) {
 				"groups": []string{},
 				"next": &matchCallable{
 					callableName: callableName{
+						sync.Mutex{},
 						"next",
 					},
 					match:  "ac",
@@ -2378,23 +2380,26 @@ func TestRegexCallable(t *testing.T) {
 					end:    5,
 					groups: []string{},
 					next: &matchCallable{
-						callableName: callableName{
-							"next",
-						},
+					callableName: callableName{
+						sync.Mutex{},
+						"next",
+					},
 						match:  "ad",
 						start:  5,
 						end:    7,
 						groups: []string{},
 						next: &matchCallable{
-							callableName: callableName{
-								"next",
-							},
+					callableName: callableName{
+						sync.Mutex{},
+						"next",
+					},
 							match:  "ab",
 							start:  7,
 							end:    9,
 							groups: []string{},
 							next: &matchCallable{
 								callableName: callableName{
+									sync.Mutex{},
 									"next",
 								},
 								match:  "a",
@@ -2425,6 +2430,7 @@ func TestRegexCallable(t *testing.T) {
 				},
 				"next": &matchCallable{
 					callableName: callableName{
+						sync.Mutex{},
 						"next",
 					},
 					match: "ac",
@@ -2435,6 +2441,7 @@ func TestRegexCallable(t *testing.T) {
 					},
 					next: &matchCallable{
 						callableName: callableName{
+							sync.Mutex{},
 							"next",
 						},
 						match: "ad",
@@ -2444,9 +2451,10 @@ func TestRegexCallable(t *testing.T) {
 							"d",
 						},
 						next: &matchCallable{
-							callableName: callableName{
-								"next",
-							},
+					callableName: callableName{
+						sync.Mutex{},
+						"next",
+					},
 							match: "ab",
 							start: 7,
 							end:   9,
@@ -2455,6 +2463,7 @@ func TestRegexCallable(t *testing.T) {
 							},
 							next: &matchCallable{
 								callableName: callableName{
+									sync.Mutex{},
 									"next",
 								},
 								match: "a",
@@ -2491,6 +2500,7 @@ func TestRegexCallable(t *testing.T) {
 				},
 				"next": &matchCallable{
 					callableName: callableName{
+						sync.Mutex{},
 						"next",
 					},
 					match: "ac",
@@ -2502,6 +2512,7 @@ func TestRegexCallable(t *testing.T) {
 					},
 					next: &matchCallable{
 						callableName: callableName{
+							sync.Mutex{},
 							"next",
 						},
 						match: "ad",
@@ -2512,9 +2523,10 @@ func TestRegexCallable(t *testing.T) {
 							"", // undefined in jsonata-js
 						},
 						next: &matchCallable{
-							callableName: callableName{
-								"next",
-							},
+					callableName: callableName{
+						sync.Mutex{},
+						"next",
+					},
 							match: "ab",
 							start: 7,
 							end:   9,
@@ -2524,6 +2536,7 @@ func TestRegexCallable(t *testing.T) {
 							},
 							next: &matchCallable{
 								callableName: callableName{
+									sync.Mutex{},
 									"next",
 								},
 								match: "a",

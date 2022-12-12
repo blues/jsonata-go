@@ -9,6 +9,7 @@ import (
 	"math"
 	"reflect"
 	"sort"
+	"sync"
 
 	"github.com/shopspring/decimal"
 	"github.com/xiatechs/jsonata-go/config"
@@ -831,6 +832,7 @@ func evalTypedLambda(node *jparse.TypedLambdaNode, data reflect.Value, env *envi
 func evalObjectTransformation(node *jparse.ObjectTransformationNode, data reflect.Value, env *environment) (reflect.Value, error) {
 	f := &transformationCallable{
 		callableName: callableName{
+			sync.Mutex{},
 			"transform",
 		},
 		pattern: node.Pattern,
