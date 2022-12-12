@@ -26,6 +26,8 @@ func (n callableName) Name() string {
 }
 
 func (n *callableName) SetName(s string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	n.name = s
 }
 
@@ -208,8 +210,8 @@ func makeGoCallableParams(typ reflect.Type) []goCallableParam {
 
 func (c *goCallable) SetContext(context reflect.Value) {
 	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.context = context
-	c.mu.Unlock()
 }
 
 func (c *goCallable) ParamCount() int {
