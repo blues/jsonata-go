@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/xiatechs/jsonata-go/jlib"
 	"github.com/xiatechs/jsonata-go/jparse"
@@ -76,6 +77,7 @@ func newGoCallableParam(typ reflect.Type) goCallableParam {
 // A goCallable represents a built-in or third party Go function.
 // It implements the Callable interface.
 type goCallable struct {
+	mu sync.Mutex
 	callableName
 	callableMarshaler
 	fn               reflect.Value
@@ -205,7 +207,9 @@ func makeGoCallableParams(typ reflect.Type) []goCallableParam {
 }
 
 func (c *goCallable) SetContext(context reflect.Value) {
+	c.mu.Lock()
 	c.context = context
+	c.mu.Unlock()
 }
 
 func (c *goCallable) ParamCount() int {
