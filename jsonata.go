@@ -180,6 +180,36 @@ func (e *Expr) EvalBytes(data []byte) ([]byte, error) {
 	return json.Marshal(v)
 }
 
+func RunEval(expression string) (interface{}, error) {
+	var s evaluator
+
+	s = simple{}
+
+	return s.Eval(expression)
+}
+
+type evaluator interface {
+	Eval(expression string) (interface{}, error)
+}
+
+type simple struct {
+
+}
+
+func (s simple) Eval(expression string) (interface{}, error) {
+	expr, err := Compile(expression)
+	if err != nil {
+		return nil, err
+	}
+	
+	result, err := expr.Eval(``)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 // RegisterExts registers custom functions for use during
 // evaluation. Custom functions registered with this method
 // are only available to this Expr object. To make custom
