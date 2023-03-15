@@ -180,29 +180,68 @@ func (e *Expr) EvalBytes(data []byte) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func RunEval(expression string) (interface{}, error) {
+func RunEval(initialContext reflect.Value, expression ...string) (interface{}, error) {
 	var s evaluator
 
 	s = simple{}
 
-	return s.Eval(expression)
+	var result interface{}
+
+	var err error
+
+	for index := range expression {
+		if index == 0 {
+			result, err = s.InitialEval(initialContext.Interface(), expression[index])
+			if err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		prevResults, err := json.Marshal(result)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err = s.Eval(string(prevResults), expression[index])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return result, nil
 }
 
 type evaluator interface {
-	Eval(expression string) (interface{}, error)
+	InitialEval(item interface{}, expression string) (interface{}, error)
+	Eval(override, expression string) (interface{}, error)
 }
 
 type simple struct {
 
 }
 
-func (s simple) Eval(expression string) (interface{}, error) {
+func (s simple) InitialEval(item interface{}, expression string) (interface{}, error) {
 	expr, err := Compile(expression)
 	if err != nil {
 		return nil, err
 	}
 	
-	result, err := expr.Eval(``)
+	result, err := expr.Eval(item)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (s simple) Eval(override, expression string) (interface{}, error) {
+	expr, err := Compile(expression)
+	if err != nil {
+		return nil, err
+	}
+	
+	result, err := expr.Eval(override)
 	if err != nil {
 		return nil, err
 	}

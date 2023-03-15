@@ -82,6 +82,12 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		EvalContextHandler: nil,
 	},
 
+	"eval": {
+		Func:               RunEval,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
 	"unescape": {
 		Func:               jlib.Unescape,
 		UndefinedHandler:   defaultUndefinedHandler,
@@ -409,12 +415,6 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		Func:               throw,
 		UndefinedHandler:   nil,
 		EvalContextHandler: nil,
-	},
-
-	"eval": {
-		Func:               RunEval,
-		UndefinedHandler:   defaultUndefinedHandler,
-		EvalContextHandler: defaultContextHandler,
 	},
 })
 
