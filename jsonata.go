@@ -198,12 +198,7 @@ func RunEval(initialContext reflect.Value, expression ...string) (interface{}, e
 			continue
 		}
 
-		prevResults, err := json.Marshal(result)
-		if err != nil {
-			return nil, err
-		}
-
-		result, err = s.Eval(string(prevResults), expression[index])
+		result, err = s.InitialEval(result, expression[index])
 		if err != nil {
 			return nil, err
 		}
