@@ -180,29 +180,74 @@ func (e *Expr) EvalBytes(data []byte) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func RunEval(expression string) (interface{}, error) {
+func RunEval(initialContext reflect.Value, expression ...interface{}) (interface{}, error) {
 	var s evaluator
 
 	s = simple{}
 
-	return s.Eval(expression)
+	var result interface{}
+
+	var err error
+
+	if len(expression) == 0 {
+		result, err = s.InitialEval(initialContext.Interface(), "$$")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for index := range expression {
+		expressionStr, ok := expression[index].(string)
+		if !ok {
+			return nil, fmt.Errorf("%v not able to be used as a string in eval statement", expression[index])
+		}
+		if index == 0 {
+			result, err = s.InitialEval(initialContext.Interface(), expressionStr)
+			if err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		result, err = s.InitialEval(result, expressionStr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return result, nil
 }
 
 type evaluator interface {
-	Eval(expression string) (interface{}, error)
+	InitialEval(item interface{}, expression string) (interface{}, error)
+	Eval(override, expression string) (interface{}, error)
 }
 
 type simple struct {
 
 }
 
-func (s simple) Eval(expression string) (interface{}, error) {
+func (s simple) InitialEval(item interface{}, expression string) (interface{}, error) {
 	expr, err := Compile(expression)
 	if err != nil {
 		return nil, err
 	}
 	
-	result, err := expr.Eval(``)
+	result, err := expr.Eval(item)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (s simple) Eval(override, expression string) (interface{}, error) {
+	expr, err := Compile(expression)
+	if err != nil {
+		return nil, err
+	}
+	
+	result, err := expr.Eval(override)
 	if err != nil {
 		return nil, err
 	}

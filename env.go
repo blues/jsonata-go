@@ -82,6 +82,12 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		EvalContextHandler: nil,
 	},
 
+	"eval": {
+		Func:               RunEval,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
 	"unescape": {
 		Func:               jlib.Unescape,
 		UndefinedHandler:   defaultUndefinedHandler,
@@ -410,12 +416,6 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		UndefinedHandler:   nil,
 		EvalContextHandler: nil,
 	},
-
-	"eval": {
-		Func:               RunEval,
-		UndefinedHandler:   defaultUndefinedHandler,
-		EvalContextHandler: defaultContextHandler,
-	},
 })
 
 func initBaseEnv(exts map[string]Extension) *environment {
@@ -473,7 +473,6 @@ func undefinedHandlerAppend(argv []reflect.Value) bool {
 // Context handlers
 
 func contextHandlerSubstring(argv []reflect.Value) bool {
-
 	// If substring() is called with one or two numeric arguments,
 	// use the evaluation context as the first argument.
 	switch len(argv) {
