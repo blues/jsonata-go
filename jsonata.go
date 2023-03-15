@@ -189,6 +189,13 @@ func RunEval(initialContext reflect.Value, expression ...string) (interface{}, e
 
 	var err error
 
+	if len(expression) == 0 {
+		result, err = s.InitialEval(initialContext.Interface(), `$$`)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	for index := range expression {
 		if index == 0 {
 			result, err = s.InitialEval(initialContext.Interface(), expression[index])
