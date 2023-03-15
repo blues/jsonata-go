@@ -180,7 +180,7 @@ func (e *Expr) EvalBytes(data []byte) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func RunEval(initialContext reflect.Value, expression ...string) (interface{}, error) {
+func RunEval(initialContext reflect.Value, expression ...interface{}) (interface{}, error) {
 	var s evaluator
 
 	s = simple{}
@@ -190,22 +190,26 @@ func RunEval(initialContext reflect.Value, expression ...string) (interface{}, e
 	var err error
 
 	if len(expression) == 0 {
-		result, err = s.InitialEval(initialContext.Interface(), `$$`)
+		result, err = s.InitialEval(initialContext.Interface(), "$$")
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	for index := range expression {
+		expressionStr, ok := expression[index].(string)
+		if !ok {
+			return nil, fmt.Errorf("%v not able to be used as a string in eval statement", expression[index])
+		}
 		if index == 0 {
-			result, err = s.InitialEval(initialContext.Interface(), expression[index])
+			result, err = s.InitialEval(initialContext.Interface(), expressionStr)
 			if err != nil {
 				return nil, err
 			}
 			continue
 		}
 
-		result, err = s.InitialEval(result, expression[index])
+		result, err = s.InitialEval(result, expressionStr)
 		if err != nil {
 			return nil, err
 		}
