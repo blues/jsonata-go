@@ -416,6 +416,12 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		UndefinedHandler:   nil,
 		EvalContextHandler: nil,
 	},
+
+	"eval": {
+		Func:               RunEval,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
 })
 
 func initBaseEnv(exts map[string]Extension) *environment {
