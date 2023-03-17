@@ -17,7 +17,12 @@ import (
 // 2006-01-02T15:04:05.000Z07:00
 const defaultFormatTimeLayout = "[Y]-[M01]-[D01]T[H01]:[m]:[s].[f001][Z01:01t]"
 
+// added some new timezones
 var defaultParseTimeLayouts = []string{
+	"2006-01-02T15:04:05",
+	"2006-01-02T15:04:05.000",
+	"15:04:05 AM 2006-01-02",
+	"2006-01-02 15:04:05 AM",
 	"[Y]-[M01]-[D01]T[H01]:[m]:[s][Z01:01t]",
 	"[Y]-[M01]-[D01]T[H01]:[m]:[s][Z0100t]",
 	"[Y]-[M01]-[D01]T[H01]:[m]:[s]",
@@ -107,26 +112,15 @@ func ToMillis(s string, picture jtypes.OptionalString, tz jtypes.OptionalString)
 		}
 	}
 
-	return 0, fmt.Errorf("could not parse time %q", s)
+	return 0, fmt.Errorf("ToMillis: could not parse time %q | picture: %s", s, picture.String)
 }
 
 var reMinus7 = regexp.MustCompile("-(0*7)")
 
 func parseTime(s string, picture string) (time.Time, error) {
-	// Go's reference time: Mon Jan 2 15:04:05 MST 2006
-	refTime := time.Date(2006, time.January, 2, 15, 4, 5, 0, time.FixedZone("MST", -7*60*60))
-
-	layout, err := jxpath.FormatTime(refTime, picture)
+	t, err := time.Parse(picture, s)
 	if err != nil {
-		return time.Time{}, fmt.Errorf("the second argument of the toMillis function must be a valid date format")
-	}
-
-	// Replace -07:00 with Z07:00
-	layout = reMinus7.ReplaceAllString(layout, "Z$1")
-
-	t, err := time.Parse(layout, s)
-	if err != nil {
-		return time.Time{}, fmt.Errorf("could not parse time %q", s)
+		return time.Time{}, fmt.Errorf("parseTime: could not parse time %q", s)
 	}
 
 	return t, nil
