@@ -117,3 +117,17 @@ func TestFromMillis(t *testing.T) {
 		}
 	}
 }
+
+func TestToMillis(t *testing.T) {
+	var picture jtypes.OptionalString
+	var tz jtypes.OptionalString
+
+	picture.Set(reflect.ValueOf("[Y0001]-[M01]-[D01] [H01]:[m01]:[s01] [P]"))
+
+	got, err := jlib.ToMillis("2023-01-31T10:44:59.800", picture, tz)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(got)
+}
