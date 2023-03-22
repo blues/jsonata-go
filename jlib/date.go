@@ -114,7 +114,16 @@ var reMinus7 = regexp.MustCompile("-(0*7)")
 
 func parseTime(s string, picture string) (time.Time, error) {
 	// Go's reference time: Mon Jan 2 15:04:05 MST 2006
-	refTime := time.Date(2006, time.January, 2, 15, 4, 5, 0, time.FixedZone("MST", -7*60*60))
+	refTime := time.Date(
+		2006,
+		time.January,
+		2,
+		15,
+		4,
+		5,
+		0,
+		time.FixedZone("MST", -7*60*60),
+	)
 
 	layout, err := jxpath.FormatTime(refTime, picture)
 	if err != nil {
