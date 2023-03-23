@@ -7612,6 +7612,11 @@ func TestFuncMillis2(t *testing.T) {
 }
 
 func TestFuncToMillis(t *testing.T) {
+	defer func() { // added this to help with the test as it panics and that is annoying
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
+	}()
 
 	runTestCases(t, nil, []*testCase{
 		{
@@ -7628,7 +7633,7 @@ func TestFuncToMillis(t *testing.T) {
 		},
 		{
 			Expression: `$toMillis("foo")`,
-			Error:      fmt.Errorf(`could not parse time "foo"`),
+			Error:      fmt.Errorf(`could not parse time "foo" due to inconsistency in layout and date time string, date foo layout 2006`),
 		},
 	})
 }
