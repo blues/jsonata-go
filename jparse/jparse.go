@@ -170,7 +170,6 @@ func lookupBp(tt tokenType) int {
 // and returns the root node. If the provided expression is not
 // valid, Parse returns an error of type Error.
 func Parse(expr string) (root Node, err error) {
-
 	// Handle panics from parseExpression.
 	defer func() {
 		if r := recover(); r != nil {
