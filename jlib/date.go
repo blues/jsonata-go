@@ -125,6 +125,11 @@ func ToMillis(s string, picture jtypes.OptionalString, tz jtypes.OptionalString)
 
 var reMinus7 = regexp.MustCompile("-(0*7)")
 
+const (
+	timeDateOnly = "2006-01-02"
+	timeDateTime = "2006-01-02 15:04:05"
+)
+
 func parseTime(s string, picture string) (time.Time, error) {
 	// Go's reference time: Mon Jan 2 15:04:05 MST 2006
 	refTime := time.Date(
@@ -148,16 +153,16 @@ func parseTime(s string, picture string) (time.Time, error) {
 
 	var formattedTime = s
 	switch layout {
-	case time.DateOnly:
-		if len(formattedTime) > len(time.DateOnly) {
-			formattedTime = formattedTime[:len(time.DateOnly)]
+	case timeDateOnly:
+		if len(formattedTime) > len(timeDateOnly) {
+			formattedTime = formattedTime[:len(timeDateOnly)]
 		}
 	case time.RFC3339:
 		// If the layout contains a time zone but the date string doesn't, lets remove it.
 		// Otherwise, if the layout contains a timezone and the time string doesn't add a default
 		// The default is currently MST which is GMT -7.
 		if !strings.Contains(formattedTime, "Z") {
-			layout = layout[:len(time.DateTime)]
+			layout = layout[:len(timeDateTime)]
 		} else {
 			formattedTimeWithTimeZone := strings.Split(formattedTime, "Z")
 			if len(formattedTimeWithTimeZone) == 2 {
