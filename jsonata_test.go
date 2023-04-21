@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math"
 	"os"
 	"path/filepath"
@@ -8094,9 +8093,9 @@ func must(t *testing.T, prefix string, err error) {
 
 func readJSON(filename string) interface{} {
 
-	data, err := ioutil.ReadFile(filepath.Join("testdata", filename))
+	data, err := os.ReadFile(filepath.Join("testdata", filename))
 	if err != nil {
-		panicf("ioutil.ReadFile error: %s", err)
+		panicf("os.ReadFile error: %s", err)
 	}
 
 	var dest interface{}

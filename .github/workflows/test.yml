@@ -8,19 +8,19 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go-version }}
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Install dependencies
-      run: |
-        go get -u honnef.co/go/tools/cmd/staticcheck@latest
-        go get -u golang.org/x/tools/cmd/goimports
-    - name: Run staticcheck
-      run: staticcheck ./...
-    - name: Check code formatting
-      run: test -z $(goimports -l .)
-    - name: Run Test
-      run: go test ./...
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          go install golang.org/x/tools/cmd/goimports@latest
+      - name: Run staticcheck
+        run: which staticcheck ; staticcheck ./...
+      - name: Check code formatting
+        run: test -z $(goimports -l .)
+      - name: Run Test
+        run: go test ./...

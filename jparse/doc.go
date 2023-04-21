@@ -6,7 +6,7 @@
 // syntax trees. Most clients will not need to work with
 // this package directly.
 //
-// Usage
+// # Usage
 //
 // Call the Parse function, passing a JSONata expression as
 // a string. If an error occurs, it will be of type Error.

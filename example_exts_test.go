@@ -7,9 +7,10 @@ package jsonata_test
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	jsonata "github.com/blues/jsonata-go"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 //
@@ -24,7 +25,10 @@ import (
 // arguments (the second argument must be an error).
 var exts = map[string]jsonata.Extension{
 	"titlecase": {
-		Func: strings.Title,
+		Func: func(v string) any {
+			caser := cases.Title(language.English)
+			return caser.String(v)
+		},
 	},
 }
 

@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -179,12 +178,13 @@ func runTest(tc testCase, dataDir string, path string) (bool, error) {
 // loadTestExprFile loads a jsonata expression from a file and returns the
 // expression
 // For example, one test looks like this
-// {
-//     "expr-file": "case000.jsonata",
-//     "dataset": null,
-//     "bindings": {},
-//     "result": 2
-// }
+//
+//	{
+//	    "expr-file": "case000.jsonata",
+//	    "dataset": null,
+//	    "bindings": {},
+//	    "result": 2
+//	}
 //
 // We want to load the expression from case000.jsonata so we can use it
 // as an expression in the test case
@@ -193,7 +193,7 @@ func loadTestExprFile(testPath string, exprFileName string) (string, error) {
 	splitPath[len(splitPath)-1] = exprFileName
 	exprFilePath := strings.Join(splitPath, "/")
 
-	content, err := ioutil.ReadFile(exprFilePath)
+	content, err := os.ReadFile(exprFilePath)
 	if err != nil {
 		return "", err
 	}
@@ -323,7 +323,7 @@ func equalResults(x, y interface{}) bool {
 }
 
 func readJSONFile(path string, dest interface{}) error {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("ReadFile %s: %s", path, err)
 	}
