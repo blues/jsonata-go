@@ -909,8 +909,6 @@ func evalFunctionCall(node *jparse.FunctionCallNode, data reflect.Value, env *en
 	}
 	res, err := fn.Call(argv)
 	if err != nil {
-		//return res, fmt.Errorf("err: %v, possition: %v, arguments: %v", err, node.Func.Pos(), transformArgsToString(argv))
-
 		return res, updateError(err, node, transformArgsToString(argv))
 	}
 	return res, nil
@@ -1007,7 +1005,6 @@ func evalNumericOperator(node *jparse.NumericOperatorNode, data reflect.Value, e
 	// Return an error if either side is not a number.
 
 	if lhsOK && !lhsNumber {
-		fmt.Println(reflect.ValueOf(data))
 		return undefined, newEvalError(ErrNonNumberLHS, node.LHS, node.Type, node.Pos())
 	}
 
