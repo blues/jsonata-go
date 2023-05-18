@@ -147,7 +147,7 @@ func (e *Expr) Eval(data interface{}) (interface{}, error) {
 	}
 
 	if !result.IsValid() {
-		return nil, fmt.Errorf("err:%v, token: %v, possition: %v", ErrUndefined, e.node.String(), e.node.Pos())
+		return nil, ErrUndefined
 	}
 
 	if !result.CanInterface() {

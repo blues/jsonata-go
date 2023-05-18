@@ -50,37 +50,38 @@ const (
 )
 
 var errmsgs = map[ErrType]string{
-	ErrNonIntegerLHS:      `left side of the "{{value}}" operator must evaluate to an integer`,
-	ErrNonIntegerRHS:      `right side of the "{{value}}" operator must evaluate to an integer`,
-	ErrNonNumberLHS:       `left side of the "{{value}}" operator must evaluate to a number`,
-	ErrNonNumberRHS:       `right side of the "{{value}}" operator must evaluate to a number`,
-	ErrNonComparableLHS:   `left side of the "{{value}}" operator must evaluate to a number or string`,
-	ErrNonComparableRHS:   `right side of the "{{value}}" operator must evaluate to a number or string`,
-	ErrTypeMismatch:       `both sides of the "{{value}}" operator must have the same type`,
-	ErrNonCallable:        `cannot call non-function {{token}}`,
-	ErrNonCallableApply:   `cannot use function application with non-function {{token}}`,
-	ErrNonCallablePartial: `cannot partially apply non-function {{token}}`,
-	ErrNumberInf:          `result of the "{{value}}" operator is out of range`,
-	ErrNumberNaN:          `result of the "{{value}}" operator is not a valid number`,
-	ErrMaxRangeItems:      `range operator has too many items`,
-	ErrIllegalKey:         `object key {{token}} does not evaluate to a string`,
-	ErrDuplicateKey:       `multiple object keys evaluate to the value "{{value}}"`,
-	ErrClone:              `object transformation: cannot make a copy of the object`,
-	ErrIllegalUpdate:      `the insert/update clause of an object transformation must evaluate to an object`,
-	ErrIllegalDelete:      `the delete clause of an object transformation must evaluate to an array of strings`,
-	ErrNonSortable:        `expressions in a sort term must evaluate to strings or numbers`,
-	ErrSortMismatch:       `expressions in a sort term must have the same type`,
+	ErrNonIntegerLHS:      `left side of the "{{value}}" operator must evaluate to an integer, position:{{position}}, arguments: {{arguments}}`,
+	ErrNonIntegerRHS:      `right side of the "{{value}}" operator must evaluate to an integer, position:{{position}}, arguments: {{arguments}}`,
+	ErrNonNumberLHS:       `left side of the "{{value}}" operator must evaluate to a number, position:{{position}}, arguments: {{arguments}}`,
+	ErrNonNumberRHS:       `right side of the "{{value}}" operator must evaluate to a number, position:{{position}}, arguments: {{arguments}}`,
+	ErrNonComparableLHS:   `left side of the "{{value}}" operator must evaluate to a number or string, position:{{position}}, arguments: {{arguments}}`,
+	ErrNonComparableRHS:   `right side of the "{{value}}" operator must evaluate to a number or string, position:{{position}}, arguments: {{arguments}}`,
+	ErrTypeMismatch:       `both sides of the "{{value}}" operator must have the same type, position:{{position}}, arguments: {{arguments}}`,
+	ErrNonCallable:        `cannot call non-function {{token}}, position:{{position}}, arguments: {{arguments}}`,
+	ErrNonCallableApply:   `cannot use function application with non-function {{token}}, position:{{position}}, arguments: {{arguments}}`,
+	ErrNonCallablePartial: `cannot partially apply non-function {{token}}, position:{{position}}, arguments: {{arguments}}`,
+	ErrNumberInf:          `result of the "{{value}}" operator is out of range, position:{{position}}, arguments: {{arguments}}`,
+	ErrNumberNaN:          `result of the "{{value}}" operator is not a valid number, position:{{position}}, arguments: {{arguments}}`,
+	ErrMaxRangeItems:      `range operator has too many items, position:{{position}}, arguments: {{arguments}}`,
+	ErrIllegalKey:         `object key {{token}} does not evaluate to a string, position:{{position}}, arguments: {{arguments}}`,
+	ErrDuplicateKey:       `multiple object keys evaluate to the value "{{value}}", position:{{position}}, arguments: {{arguments}}`,
+	ErrClone:              `object transformation: cannot make a copy of the object, position:{{position}}, arguments: {{arguments}}`,
+	ErrIllegalUpdate:      `the insert/update clause of an object transformation must evaluate to an object, position:{{position}}, arguments: {{arguments}}`,
+	ErrIllegalDelete:      `the delete clause of an object transformation must evaluate to an array of strings, position:{{position}}, arguments: {{arguments}}`,
+	ErrNonSortable:        `expressions in a sort term must evaluate to strings or numbers, position:{{position}}, arguments: {{arguments}}`,
+	ErrSortMismatch:       `expressions in a sort term must have the same type, position:{{position}}, arguments: {{arguments}}`,
 }
 
-var reErrMsg = regexp.MustCompile("{{(token|value)}}")
+var reErrMsg = regexp.MustCompile("{{(token|value|position|arguments)}}")
 
 // An EvalError represents an error during evaluation of a
 // JSONata expression.
 type EvalError struct {
-	Type  ErrType
-	Token string
-	Value string
-	Pos   int
+	Type      ErrType
+	Token     string
+	Value     string
+	Pos       int
+	Arguments string
 }
 
 func newEvalError(typ ErrType, token interface{}, value interface{}, pos int) *EvalError {
@@ -114,9 +115,13 @@ func (e EvalError) Error() string {
 	return reErrMsg.ReplaceAllStringFunc(s, func(match string) string {
 		switch match {
 		case "{{token}}":
-			return fmt.Sprintf("token:%v, position: %v", e.Token, e.Pos)
+			return e.Token
 		case "{{value}}":
-			return fmt.Sprintf("value:%v, position: %v", e.Value, e.Pos)
+			return e.Value
+		case "{{arguments}}":
+			return e.Arguments
+		case "{{position}}":
+			return fmt.Sprintf("%v", e.Pos)
 		default:
 			return match
 		}
@@ -148,8 +153,10 @@ func (e ArgCountError) Error() string {
 // expression contains a function call with the wrong argument
 // type.
 type ArgTypeError struct {
-	Func  string
-	Which int
+	Func      string
+	Which     int
+	Pos       int
+	Arguments string
 }
 
 func newArgTypeError(f jtypes.Callable, which int) *ArgTypeError {
@@ -160,5 +167,5 @@ func newArgTypeError(f jtypes.Callable, which int) *ArgTypeError {
 }
 
 func (e ArgTypeError) Error() string {
-	return fmt.Sprintf("argument %d of function %q does not match function signature", e.Which, e.Func)
+	return fmt.Sprintf("argument %d of function %q does not match function signature, position: %v, arguments: %v", e.Which, e.Func, e.Pos, e.Arguments)
 }

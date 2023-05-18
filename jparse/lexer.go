@@ -317,7 +317,7 @@ Loop:
 			}
 			fallthrough
 		case eof:
-			return l.error(ErrUnterminatedString, string(quote))
+			return l.error(ErrUnterminatedString, fmt.Sprintf("%s, starting from character position %d", string(quote), l.start))
 		}
 	}
 

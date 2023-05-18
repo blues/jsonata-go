@@ -315,7 +315,7 @@ func evalNegation(node *jparse.NegationNode, data reflect.Value, env *environmen
 
 	n, ok := jtypes.AsNumber(rhs)
 	if !ok {
-		return undefined, newEvalError(ErrNonNumberRHS, node.RHS, "-", 0)
+		return undefined, newEvalError(ErrNonNumberRHS, node.RHS, "-", node.Pos())
 	}
 
 	return reflect.ValueOf(-n), nil
@@ -909,9 +909,22 @@ func evalFunctionCall(node *jparse.FunctionCallNode, data reflect.Value, env *en
 	}
 	res, err := fn.Call(argv)
 	if err != nil {
-		return res, fmt.Errorf("err: %v, possition: %v, arguments: %v", err, node.Func.Pos(), transformArgsToString(argv))
+		//return res, fmt.Errorf("err: %v, possition: %v, arguments: %v", err, node.Func.Pos(), transformArgsToString(argv))
+
+		return res, updateError(err, node, transformArgsToString(argv))
 	}
 	return res, nil
+}
+
+func updateError(err error, node *jparse.FunctionCallNode, stringArgs string) error {
+	newErr, ok := err.(*ArgTypeError)
+	if ok {
+		newErr.Pos = node.Func.Pos()
+		newErr.Arguments = stringArgs
+		return newErr
+	}
+
+	return fmt.Errorf("%v, position: %v, arguments: %v", err, node.Func.Pos(), stringArgs)
 }
 
 func transformArgsToString(argv []reflect.Value) string {

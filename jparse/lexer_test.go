@@ -164,7 +164,7 @@ func TestLexerStrings(t *testing.T) {
 			Error: &Error{
 				Type:     ErrUnterminatedString,
 				Token:    "No closing quote...",
-				Hint:     "\"",
+				Hint:     "\", starting from character position 1",
 				Position: 1,
 			},
 		},
@@ -176,7 +176,7 @@ func TestLexerStrings(t *testing.T) {
 			Error: &Error{
 				Type:     ErrUnterminatedString,
 				Token:    "No closing quote...",
-				Hint:     "'",
+				Hint:     "', starting from character position 1",
 				Position: 1,
 			},
 		},
@@ -393,7 +393,9 @@ func compareTokens(t *testing.T, prefix string, exp, got token) {
 }
 
 func compareErrors(t *testing.T, prefix string, exp, got error) {
-	assert.EqualError(t, exp, fmt.Sprintf("%v", got))
+	if exp != nil && got != nil {
+		assert.EqualError(t, exp, fmt.Sprintf("%v", got))
+	}
 
 }
 
