@@ -5,7 +5,8 @@
 package jparse
 
 import (
-	"reflect"
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -392,10 +393,8 @@ func compareTokens(t *testing.T, prefix string, exp, got token) {
 }
 
 func compareErrors(t *testing.T, prefix string, exp, got error) {
+	assert.EqualError(t, exp, fmt.Sprintf("%v", got))
 
-	if !reflect.DeepEqual(exp, got) {
-		t.Errorf("%s: expected error %v, got %v", prefix, exp, got)
-	}
 }
 
 func tok(typ tokenType, value string, position int) token {

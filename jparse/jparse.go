@@ -4,6 +4,8 @@
 
 package jparse
 
+import "fmt"
+
 // The JSONata parser is based on Pratt's Top Down Operator
 // Precededence algorithm (see https://tdop.github.io/). Given
 // a series of tokens representing a JSONata expression and the
@@ -170,7 +172,6 @@ func lookupBp(tt tokenType) int {
 // and returns the root node. If the provided expression is not
 // valid, Parse returns an error of type Error.
 func Parse(expr string) (root Node, err error) {
-
 	// Handle panics from parseExpression.
 	defer func() {
 		if r := recover(); r != nil {
@@ -302,7 +303,8 @@ func (p *parser) consume(expected tokenType, allowRegex bool) {
 			typ = ErrMissingToken
 		}
 
-		panic(newErrorHint(typ, p.token, expected.String()))
+		// syntax errors now tell you exact character position where error failed - which you can find using software or local editor
+		panic(newErrorHint(typ, p.token, fmt.Sprintf("'%s' at character position: %d", expected.String(), p.token.Position)))
 	}
 
 	p.advance(allowRegex)

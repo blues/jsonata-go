@@ -18,11 +18,21 @@ import (
 type Node interface {
 	String() string
 	optimize() (Node, error)
+	Pos() int
+}
+
+func (n *NumberNode) Pos() int {
+	return n.pos
 }
 
 // A StringNode represents a string literal.
 type StringNode struct {
 	Value string
+	pos   int
+}
+
+func (n *StringNode) Pos() int {
+	return n.pos
 }
 
 func parseString(p *parser, t token) (Node, error) {
@@ -39,6 +49,7 @@ func parseString(p *parser, t token) (Node, error) {
 
 	return &StringNode{
 		Value: s,
+		pos:   t.Position,
 	}, nil
 }
 
@@ -53,6 +64,7 @@ func (n StringNode) String() string {
 // A NumberNode represents a number literal.
 type NumberNode struct {
 	Value float64
+	pos   int
 }
 
 func parseNumber(p *parser, t token) (Node, error) {
@@ -69,6 +81,7 @@ func parseNumber(p *parser, t token) (Node, error) {
 
 	return &NumberNode{
 		Value: n,
+		pos:   t.Position,
 	}, nil
 }
 
@@ -83,6 +96,11 @@ func (n NumberNode) String() string {
 // A BooleanNode represents the boolean constant true or false.
 type BooleanNode struct {
 	Value bool
+	pos   int
+}
+
+func (n *BooleanNode) Pos() int {
+	return n.pos
 }
 
 func parseBoolean(p *parser, t token) (Node, error) {
@@ -100,6 +118,7 @@ func parseBoolean(p *parser, t token) (Node, error) {
 
 	return &BooleanNode{
 		Value: b,
+		pos:   t.Position,
 	}, nil
 }
 
@@ -112,10 +131,17 @@ func (n BooleanNode) String() string {
 }
 
 // A NullNode represents the JSON null value.
-type NullNode struct{}
+type NullNode struct {
+	pos int
+}
 
+func (n *NullNode) Pos() int {
+	return n.pos
+}
 func parseNull(p *parser, t token) (Node, error) {
-	return &NullNode{}, nil
+	return &NullNode{
+		pos: t.Position,
+	}, nil
 }
 
 func (n *NullNode) optimize() (Node, error) {
@@ -129,6 +155,11 @@ func (NullNode) String() string {
 // A RegexNode represents a regular expression.
 type RegexNode struct {
 	Value *regexp.Regexp
+	pos   int
+}
+
+func (n *RegexNode) Pos() int {
+	return n.pos
 }
 
 func parseRegex(p *parser, t token) (Node, error) {
@@ -149,6 +180,7 @@ func parseRegex(p *parser, t token) (Node, error) {
 
 	return &RegexNode{
 		Value: re,
+		pos:   t.Position,
 	}, nil
 }
 
@@ -167,11 +199,17 @@ func (n RegexNode) String() string {
 // A VariableNode represents a JSONata variable.
 type VariableNode struct {
 	Name string
+	pos  int
+}
+
+func (n *VariableNode) Pos() int {
+	return n.pos
 }
 
 func parseVariable(p *parser, t token) (Node, error) {
 	return &VariableNode{
 		Name: t.Value,
+		pos:  t.Position,
 	}, nil
 }
 
@@ -187,11 +225,17 @@ func (n VariableNode) String() string {
 type NameNode struct {
 	Value   string
 	escaped bool
+	pos     int
+}
+
+func (n *NameNode) Pos() int {
+	return n.pos
 }
 
 func parseName(p *parser, t token) (Node, error) {
 	return &NameNode{
 		Value: t.Value,
+		pos:   t.Position,
 	}, nil
 }
 
@@ -199,12 +243,14 @@ func parseEscapedName(p *parser, t token) (Node, error) {
 	return &NameNode{
 		Value:   t.Value,
 		escaped: true,
+		pos:     t.Position,
 	}, nil
 }
 
 func (n *NameNode) optimize() (Node, error) {
 	return &PathNode{
 		Steps: []Node{n},
+		pos:   n.Pos(),
 	}, nil
 }
 
@@ -228,6 +274,11 @@ func (n NameNode) Escaped() bool {
 type PathNode struct {
 	Steps      []Node
 	KeepArrays bool
+	pos        int
+}
+
+func (n *PathNode) Pos() int {
+	return n.pos
 }
 
 func (n *PathNode) optimize() (Node, error) {
@@ -245,11 +296,17 @@ func (n PathNode) String() string {
 // A NegationNode represents a numeric negation operation.
 type NegationNode struct {
 	RHS Node
+	pos int
+}
+
+func (n *NegationNode) Pos() int {
+	return n.pos
 }
 
 func parseNegation(p *parser, t token) (Node, error) {
 	return &NegationNode{
 		RHS: p.parseExpression(p.bp(t.Type)),
+		pos: t.Position,
 	}, nil
 }
 
@@ -267,6 +324,7 @@ func (n *NegationNode) optimize() (Node, error) {
 	if number, ok := n.RHS.(*NumberNode); ok {
 		return &NumberNode{
 			Value: -number.Value,
+			pos:   number.Pos(),
 		}, nil
 	}
 
@@ -281,6 +339,11 @@ func (n NegationNode) String() string {
 type RangeNode struct {
 	LHS Node
 	RHS Node
+	pos int
+}
+
+func (n *RangeNode) Pos() int {
+	return n.pos
 }
 
 func (n *RangeNode) optimize() (Node, error) {
@@ -307,8 +370,12 @@ func (n RangeNode) String() string {
 // An ArrayNode represents an array of items.
 type ArrayNode struct {
 	Items []Node
+	pos   int
 }
 
+func (n *ArrayNode) Pos() int {
+	return n.pos
+}
 func parseArray(p *parser, t token) (Node, error) {
 
 	var items []Node
@@ -324,6 +391,7 @@ func parseArray(p *parser, t token) (Node, error) {
 			item = &RangeNode{
 				LHS: item,
 				RHS: p.parseExpression(0),
+				pos: p.token.Position,
 			}
 		}
 
@@ -339,6 +407,7 @@ func parseArray(p *parser, t token) (Node, error) {
 
 	return &ArrayNode{
 		Items: items,
+		pos:   t.Position,
 	}, nil
 }
 
@@ -364,6 +433,11 @@ func (n ArrayNode) String() string {
 // key-value pairs.
 type ObjectNode struct {
 	Pairs [][2]Node
+	pos   int
+}
+
+func (n *ObjectNode) Pos() int {
+	return n.pos
 }
 
 func parseObject(p *parser, t token) (Node, error) {
@@ -388,6 +462,7 @@ func parseObject(p *parser, t token) (Node, error) {
 
 	return &ObjectNode{
 		Pairs: pairs,
+		pos:   t.Position,
 	}, nil
 }
 
@@ -421,6 +496,11 @@ func (n ObjectNode) String() string {
 // A BlockNode represents a block expression.
 type BlockNode struct {
 	Exprs []Node
+	pos   int
+}
+
+func (n *BlockNode) Pos() int {
+	return n.pos
 }
 
 func parseBlock(p *parser, t token) (Node, error) {
@@ -441,6 +521,7 @@ func parseBlock(p *parser, t token) (Node, error) {
 
 	return &BlockNode{
 		Exprs: exprs,
+		pos:   t.Position,
 	}, nil
 }
 
@@ -463,10 +544,17 @@ func (n BlockNode) String() string {
 }
 
 // A WildcardNode represents the wildcard operator.
-type WildcardNode struct{}
+type WildcardNode struct {
+	pos int
+}
 
+func (n *WildcardNode) Pos() int {
+	return n.pos
+}
 func parseWildcard(p *parser, t token) (Node, error) {
-	return &WildcardNode{}, nil
+	return &WildcardNode{
+		pos: t.Position,
+	}, nil
 }
 
 func (n *WildcardNode) optimize() (Node, error) {
@@ -478,10 +566,17 @@ func (WildcardNode) String() string {
 }
 
 // A DescendentNode represents the descendent operator.
-type DescendentNode struct{}
+type DescendentNode struct {
+	pos int
+}
 
+func (n *DescendentNode) Pos() int {
+	return n.pos
+}
 func parseDescendent(p *parser, t token) (Node, error) {
-	return &DescendentNode{}, nil
+	return &DescendentNode{
+		pos: t.Position,
+	}, nil
 }
 
 func (n *DescendentNode) optimize() (Node, error) {
@@ -498,6 +593,11 @@ type ObjectTransformationNode struct {
 	Pattern Node
 	Updates Node
 	Deletes Node
+	pos     int
+}
+
+func (n *ObjectTransformationNode) Pos() int {
+	return n.pos
 }
 
 func parseObjectTransformation(p *parser, t token) (Node, error) {
@@ -517,6 +617,7 @@ func parseObjectTransformation(p *parser, t token) (Node, error) {
 		Pattern: pattern,
 		Updates: updates,
 		Deletes: deletes,
+		pos:     t.Position,
 	}, nil
 }
 
@@ -833,8 +934,12 @@ type LambdaNode struct {
 	Body       Node
 	ParamNames []string
 	shorthand  bool
+	pos        int
 }
 
+func (n *LambdaNode) Pos() int {
+	return n.pos
+}
 func (n *LambdaNode) optimize() (Node, error) {
 
 	var err error
@@ -876,8 +981,12 @@ type TypedLambdaNode struct {
 	*LambdaNode
 	In  []Param
 	Out []Param
+	pos int
 }
 
+func (n *TypedLambdaNode) Pos() int {
+	return n.pos
+}
 func (n *TypedLambdaNode) optimize() (Node, error) {
 
 	node, err := n.LambdaNode.optimize()
@@ -913,6 +1022,11 @@ func (n TypedLambdaNode) String() string {
 type PartialNode struct {
 	Func Node
 	Args []Node
+	pos  int
+}
+
+func (n *PartialNode) Pos() int {
+	return n.pos
 }
 
 func (n *PartialNode) optimize() (Node, error) {
@@ -940,8 +1054,13 @@ func (n PartialNode) String() string {
 
 // A PlaceholderNode represents a placeholder argument
 // in a partially applied function.
-type PlaceholderNode struct{}
+type PlaceholderNode struct {
+	pos int
+}
 
+func (n *PlaceholderNode) Pos() int {
+	return n.pos
+}
 func (n *PlaceholderNode) optimize() (Node, error) {
 	return n, nil
 }
@@ -954,6 +1073,11 @@ func (PlaceholderNode) String() string {
 type FunctionCallNode struct {
 	Func Node
 	Args []Node
+	pos  int
+}
+
+func (n *FunctionCallNode) Pos() int {
+	return n.pos
 }
 
 const typePlaceholder = typeCondition
@@ -993,12 +1117,14 @@ func parseFunctionCall(p *parser, t token, lhs Node) (Node, error) {
 		return &PartialNode{
 			Func: lhs,
 			Args: args,
+			pos:  t.Position,
 		}, nil
 	}
 
 	return &FunctionCallNode{
 		Func: lhs,
 		Args: args,
+		pos:  t.Position,
 	}, nil
 }
 
@@ -1062,6 +1188,7 @@ func parseLambdaDefinition(p *parser, shorthand bool) (Node, error) {
 		Body:       body,
 		ParamNames: paramNames,
 		shorthand:  shorthand,
+		pos:        body.Pos(),
 	}
 
 	if !isTyped {
@@ -1071,6 +1198,7 @@ func parseLambdaDefinition(p *parser, shorthand bool) (Node, error) {
 	return &TypedLambdaNode{
 		LambdaNode: lambda,
 		In:         params,
+		pos:        lambda.Pos(),
 	}, nil
 }
 
@@ -1149,6 +1277,11 @@ Loop:
 type PredicateNode struct {
 	Expr    Node
 	Filters []Node
+	pos     int
+}
+
+func (n *PredicateNode) Pos() int {
+	return n.pos
 }
 
 func (n *PredicateNode) optimize() (Node, error) {
@@ -1163,6 +1296,7 @@ func (n PredicateNode) String() string {
 type GroupNode struct {
 	Expr Node
 	*ObjectNode
+	pos int
 }
 
 func parseGroup(p *parser, t token, lhs Node) (Node, error) {
@@ -1175,6 +1309,7 @@ func parseGroup(p *parser, t token, lhs Node) (Node, error) {
 	return &GroupNode{
 		Expr:       lhs,
 		ObjectNode: obj.(*ObjectNode),
+		pos:        t.Position,
 	}, nil
 }
 
@@ -1212,8 +1347,12 @@ type ConditionalNode struct {
 	If   Node
 	Then Node
 	Else Node
+	pos  int
 }
 
+func (n *ConditionalNode) Pos() int {
+	return n.pos
+}
 func parseConditional(p *parser, t token, lhs Node) (Node, error) {
 
 	var els Node
@@ -1228,6 +1367,7 @@ func parseConditional(p *parser, t token, lhs Node) (Node, error) {
 		If:   lhs,
 		Then: rhs,
 		Else: els,
+		pos:  t.Position,
 	}, nil
 }
 
@@ -1269,6 +1409,11 @@ func (n ConditionalNode) String() string {
 type AssignmentNode struct {
 	Name  string
 	Value Node
+	pos   int
+}
+
+func (n *AssignmentNode) Pos() int {
+	return n.pos
 }
 
 func parseAssignment(p *parser, t token, lhs Node) (Node, error) {
@@ -1281,6 +1426,7 @@ func parseAssignment(p *parser, t token, lhs Node) (Node, error) {
 	return &AssignmentNode{
 		Name:  v.Name,
 		Value: p.parseExpression(p.bp(t.Type) - 1), // right-associative
+		pos:   t.Position,
 	}, nil
 }
 
@@ -1336,8 +1482,12 @@ type NumericOperatorNode struct {
 	Type NumericOperator
 	LHS  Node
 	RHS  Node
+	pos  int
 }
 
+func (n *NumericOperatorNode) Pos() int {
+	return n.pos
+}
 func parseNumericOperator(p *parser, t token, lhs Node) (Node, error) {
 
 	var op NumericOperator
@@ -1361,6 +1511,7 @@ func parseNumericOperator(p *parser, t token, lhs Node) (Node, error) {
 		Type: op,
 		LHS:  lhs,
 		RHS:  p.parseExpression(p.bp(t.Type)),
+		pos:  t.Position,
 	}, nil
 }
 
@@ -1426,8 +1577,12 @@ type ComparisonOperatorNode struct {
 	Type ComparisonOperator
 	LHS  Node
 	RHS  Node
+	pos  int
 }
 
+func (n *ComparisonOperatorNode) Pos() int {
+	return n.pos
+}
 func parseComparisonOperator(p *parser, t token, lhs Node) (Node, error) {
 
 	var op ComparisonOperator
@@ -1455,6 +1610,7 @@ func parseComparisonOperator(p *parser, t token, lhs Node) (Node, error) {
 		Type: op,
 		LHS:  lhs,
 		RHS:  p.parseExpression(p.bp(t.Type)),
+		pos:  t.Position,
 	}, nil
 }
 
@@ -1506,6 +1662,11 @@ type BooleanOperatorNode struct {
 	Type BooleanOperator
 	LHS  Node
 	RHS  Node
+	pos  int
+}
+
+func (n *BooleanOperatorNode) Pos() int {
+	return n.pos
 }
 
 func parseBooleanOperator(p *parser, t token, lhs Node) (Node, error) {
@@ -1518,13 +1679,14 @@ func parseBooleanOperator(p *parser, t token, lhs Node) (Node, error) {
 	case typeOr:
 		op = BooleanOr
 	default: // should be unreachable
-		panicf("parseBooleanOperator: unexpected operator %q", t.Value)
+		panicf("parseBooleanOperator: unexpected operator %q at position %d", t.Value, p.token.Position)
 	}
 
 	return &BooleanOperatorNode{
 		Type: op,
 		LHS:  lhs,
 		RHS:  p.parseExpression(p.bp(t.Type)),
+		pos:  t.Position,
 	}, nil
 }
 
@@ -1554,12 +1716,17 @@ func (n BooleanOperatorNode) String() string {
 type StringConcatenationNode struct {
 	LHS Node
 	RHS Node
+	pos int
 }
 
+func (n *StringConcatenationNode) Pos() int {
+	return n.pos
+}
 func parseStringConcatenation(p *parser, t token, lhs Node) (Node, error) {
 	return &StringConcatenationNode{
 		LHS: lhs,
 		RHS: p.parseExpression(p.bp(t.Type)),
+		pos: t.Position,
 	}, nil
 }
 
@@ -1605,8 +1772,12 @@ type SortTerm struct {
 type SortNode struct {
 	Expr  Node
 	Terms []SortTerm
+	pos   int
 }
 
+func (n *SortNode) Pos() int {
+	return n.pos
+}
 func parseSort(p *parser, t token, lhs Node) (Node, error) {
 
 	var terms []SortTerm
@@ -1641,6 +1812,7 @@ func parseSort(p *parser, t token, lhs Node) (Node, error) {
 	return &SortNode{
 		Expr:  lhs,
 		Terms: terms,
+		pos:   t.Position,
 	}, nil
 }
 
@@ -1689,12 +1861,18 @@ func (n SortNode) String() string {
 type FunctionApplicationNode struct {
 	LHS Node
 	RHS Node
+	pos int
+}
+
+func (n *FunctionApplicationNode) Pos() int {
+	return n.pos
 }
 
 func parseFunctionApplication(p *parser, t token, lhs Node) (Node, error) {
 	return &FunctionApplicationNode{
 		LHS: lhs,
 		RHS: p.parseExpression(p.bp(t.Type)),
+		pos: t.Position,
 	}, nil
 }
 
@@ -1725,12 +1903,18 @@ func (n FunctionApplicationNode) String() string {
 type dotNode struct {
 	lhs Node
 	rhs Node
+	pos int
+}
+
+func (n *dotNode) Pos() int {
+	return n.pos
 }
 
 func parseDot(p *parser, t token, lhs Node) (Node, error) {
 	return &dotNode{
 		lhs: lhs,
 		rhs: p.parseExpression(p.bp(t.Type)),
+		pos: t.Position,
 	}, nil
 }
 
@@ -1792,6 +1976,11 @@ func (n dotNode) String() string {
 // and gets converted into a PathNode during optimization.
 type singletonArrayNode struct {
 	lhs Node
+	pos int
+}
+
+func (n *singletonArrayNode) Pos() int {
+	return n.pos
 }
 
 func (n *singletonArrayNode) optimize() (Node, error) {
@@ -1823,8 +2012,12 @@ func (n singletonArrayNode) String() string {
 type predicateNode struct {
 	lhs Node // the context for this predicate
 	rhs Node // the predicate expression
+	pos int
 }
 
+func (n *predicateNode) Pos() int {
+	return n.pos
+}
 func parsePredicate(p *parser, t token, lhs Node) (Node, error) {
 
 	if p.token.Type == typeBracketClose {
@@ -1834,6 +2027,7 @@ func parsePredicate(p *parser, t token, lhs Node) (Node, error) {
 		// flatten singleton arrays into single values.
 		return &singletonArrayNode{
 			lhs: lhs,
+			pos: t.Position,
 		}, nil
 	}
 
@@ -1843,6 +2037,7 @@ func parsePredicate(p *parser, t token, lhs Node) (Node, error) {
 	return &predicateNode{
 		lhs: lhs,
 		rhs: rhs,
+		pos: t.Position,
 	}, nil
 }
 

@@ -80,9 +80,10 @@ type EvalError struct {
 	Type  ErrType
 	Token string
 	Value string
+	Pos   int
 }
 
-func newEvalError(typ ErrType, token interface{}, value interface{}) *EvalError {
+func newEvalError(typ ErrType, token interface{}, value interface{}, pos int) *EvalError {
 
 	stringify := func(v interface{}) string {
 		switch v := v.(type) {
@@ -99,6 +100,7 @@ func newEvalError(typ ErrType, token interface{}, value interface{}) *EvalError 
 		Type:  typ,
 		Token: stringify(token),
 		Value: stringify(value),
+		Pos:   pos,
 	}
 }
 
@@ -112,9 +114,9 @@ func (e EvalError) Error() string {
 	return reErrMsg.ReplaceAllStringFunc(s, func(match string) string {
 		switch match {
 		case "{{token}}":
-			return e.Token
+			return fmt.Sprintf("token:%v, position: %v", e.Token, e.Pos)
 		case "{{value}}":
-			return e.Value
+			return fmt.Sprintf("value:%v, position: %v", e.Value, e.Pos)
 		default:
 			return match
 		}

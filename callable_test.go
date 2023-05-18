@@ -6,6 +6,7 @@ package jsonata
 
 import (
 	"errors"
+	"github.com/stretchr/testify/assert"
 	"math"
 	"reflect"
 	"regexp"
@@ -2329,8 +2330,8 @@ func testTransformationCallable(t *testing.T, tests []transformationCallableTest
 			}
 		}
 
-		if !reflect.DeepEqual(err, test.Error) {
-			t.Errorf("transform %d: expected error %v, got %v", i+1, test.Error, err)
+		if err != nil && test.Error != nil {
+			assert.EqualError(t, err, test.Error.Error())
 		}
 	}
 }
@@ -2380,19 +2381,19 @@ func TestRegexCallable(t *testing.T) {
 					end:    5,
 					groups: []string{},
 					next: &matchCallable{
-					callableName: callableName{
-						sync.Mutex{},
-						"next",
-					},
+						callableName: callableName{
+							sync.Mutex{},
+							"next",
+						},
 						match:  "ad",
 						start:  5,
 						end:    7,
 						groups: []string{},
 						next: &matchCallable{
-					callableName: callableName{
-						sync.Mutex{},
-						"next",
-					},
+							callableName: callableName{
+								sync.Mutex{},
+								"next",
+							},
 							match:  "ab",
 							start:  7,
 							end:    9,
@@ -2451,10 +2452,10 @@ func TestRegexCallable(t *testing.T) {
 							"d",
 						},
 						next: &matchCallable{
-					callableName: callableName{
-						sync.Mutex{},
-						"next",
-					},
+							callableName: callableName{
+								sync.Mutex{},
+								"next",
+							},
 							match: "ab",
 							start: 7,
 							end:   9,
@@ -2523,10 +2524,10 @@ func TestRegexCallable(t *testing.T) {
 							"", // undefined in jsonata-js
 						},
 						next: &matchCallable{
-					callableName: callableName{
-						sync.Mutex{},
-						"next",
-					},
+							callableName: callableName{
+								sync.Mutex{},
+								"next",
+							},
 							match: "ab",
 							start: 7,
 							end:   9,

@@ -70,7 +70,6 @@ var baseEnv = initBaseEnv(map[string]Extension{
 	/*
 		EXTENDED START
 	*/
-
 	"objmerge": {
 		Func:               jlib.ObjMerge,
 		UndefinedHandler:   defaultUndefinedHandler,
@@ -81,6 +80,12 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		Func:               jlib.SimpleJoin,
 		UndefinedHandler:   defaultUndefinedHandler,
 		EvalContextHandler: nil,
+	},
+
+	"eval": {
+		Func:               RunEval,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
 	},
 
 	"unescape": {
@@ -468,7 +473,6 @@ func undefinedHandlerAppend(argv []reflect.Value) bool {
 // Context handlers
 
 func contextHandlerSubstring(argv []reflect.Value) bool {
-
 	// If substring() is called with one or two numeric arguments,
 	// use the evaluation context as the first argument.
 	switch len(argv) {
