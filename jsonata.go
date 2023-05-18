@@ -224,6 +224,7 @@ type evaluator interface {
 }
 
 type simple struct {
+
 }
 
 func (s simple) InitialEval(item interface{}, expression string) (interface{}, error) {
