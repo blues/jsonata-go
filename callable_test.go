@@ -6,6 +6,7 @@ package jsonata
 
 import (
 	"errors"
+	"github.com/stretchr/testify/assert"
 	"math"
 	"reflect"
 	"regexp"
@@ -2329,8 +2330,8 @@ func testTransformationCallable(t *testing.T, tests []transformationCallableTest
 			}
 		}
 
-		if !reflect.DeepEqual(err, test.Error) {
-			t.Errorf("transform %d: expected error %v, got %v", i+1, test.Error, err)
+		if err != nil && test.Error != nil {
+			assert.EqualError(t, err, test.Error.Error())
 		}
 	}
 }

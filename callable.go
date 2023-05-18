@@ -689,7 +689,7 @@ func (f *transformationCallable) Call(argv []reflect.Value) (reflect.Value, erro
 
 	obj, err := f.clone(argv[0])
 	if err != nil {
-		return undefined, newEvalError(ErrClone, nil, nil)
+		return undefined, newEvalError(ErrClone, nil, nil, 0)
 	}
 
 	if obj == undefined {
@@ -746,7 +746,7 @@ func (f *transformationCallable) updateEntries(item reflect.Value) error {
 	}
 
 	if !jtypes.IsMap(updates) {
-		return newEvalError(ErrIllegalUpdate, f.updates, nil)
+		return newEvalError(ErrIllegalUpdate, f.updates, nil, 0)
 	}
 
 	for _, key := range updates.MapKeys() {
@@ -766,7 +766,7 @@ func (f *transformationCallable) deleteEntries(item reflect.Value) error {
 	deletes = arrayify(deletes)
 
 	if !jtypes.IsArrayOf(deletes, jtypes.IsString) {
-		return newEvalError(ErrIllegalDelete, f.deletes, nil)
+		return newEvalError(ErrIllegalDelete, f.deletes, nil, 0)
 	}
 
 	for i := 0; i < deletes.Len(); i++ {

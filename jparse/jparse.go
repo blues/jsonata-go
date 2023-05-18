@@ -301,6 +301,7 @@ func (p *parser) consume(expected tokenType, allowRegex bool) {
 			typ = ErrMissingToken
 		}
 
+		// syntax errors now tell you exact character position where error failed - which you can find using software or local editor
 		panic(newErrorHint(typ, p.token, expected.String()))
 	}
 

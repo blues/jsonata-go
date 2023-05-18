@@ -232,7 +232,7 @@ func (s simple) InitialEval(item interface{}, expression string) (interface{}, e
 	if err != nil {
 		return nil, err
 	}
-	
+
 	result, err := expr.Eval(item)
 	if err != nil {
 		return nil, err
@@ -246,7 +246,7 @@ func (s simple) Eval(override, expression string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	result, err := expr.Eval(override)
 	if err != nil {
 		return nil, err
