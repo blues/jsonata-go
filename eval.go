@@ -205,9 +205,6 @@ func evalPath(node *jparse.PathNode, data reflect.Value, env *environment) (refl
 			return undefined, err
 		}
 
-		if jtypes.IsArray(output) && jtypes.Resolve(output).Len() == 0 {
-			return undefined, nil
-		}
 	}
 
 	if node.KeepArrays {

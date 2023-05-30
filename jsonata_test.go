@@ -621,6 +621,18 @@ func TestArraySelectors4(t *testing.T) {
 
 }
 
+func TestEmptyArray(t *testing.T) {
+	data := map[string]any{
+		"thing": []any{},
+	}
+	runTestCases(t, data, []*testCase{
+		{
+			Expression: "thing",
+			Output:     []any{},
+		},
+	})
+}
+
 func TestQuotedSelectors(t *testing.T) {
 
 	runTestCases(t, testdata.foobar, []*testCase{
