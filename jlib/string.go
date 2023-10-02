@@ -231,9 +231,9 @@ func Join(values reflect.Value, separator jtypes.OptionalString) (string, error)
 // regular expression in the source string. Each object in the
 // array has the following fields:
 //
-//     match - the substring matched by the regex
-//     index - the starting offset of this match
-//     groups - any captured groups for this match
+//	match - the substring matched by the regex
+//	index - the starting offset of this match
+//	groups - any captured groups for this match
 //
 // The optional third argument specifies the maximum number
 // of matches to return. By default, Match returns all matches.

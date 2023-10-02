@@ -5,12 +5,13 @@
 package jsonata
 
 import (
-	"github.com/stretchr/testify/assert"
 	"math"
 	"reflect"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/xiatechs/jsonata-go/jlib"
 	"github.com/xiatechs/jsonata-go/jparse"

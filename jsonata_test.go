@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math"
 	"os"
@@ -19,6 +18,8 @@ import (
 	"testing"
 	"time"
 	"unicode/utf8"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/xiatechs/jsonata-go/jparse"
 	"github.com/xiatechs/jsonata-go/jtypes"

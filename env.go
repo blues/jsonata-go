@@ -94,6 +94,12 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		EvalContextHandler: defaultContextHandler,
 	},
 
+	"objectsToDocument": {
+		Func:               jlib.ObjectsToDocument,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
 	/*
 		EXTENDED END
 	*/

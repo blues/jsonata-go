@@ -2,6 +2,7 @@ package jlib
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -228,4 +229,56 @@ func ObjMerge(i1, i2 interface{}) interface{} {
 	}
 
 	return output
+}
+
+// setValue sets the value in the obj map at the specified dot notation path.
+func setValue(obj map[string]interface{}, path string, value interface{}) {
+	paths := strings.Split(path, ".") // Split the path into parts
+
+	// Iterate through path parts to navigate/create nested maps
+	for i := 0; i < len(paths)-1; i++ {
+		// If the key does not exist, create a new map at the key
+		_, ok := obj[paths[i]]
+		if !ok {
+			obj[paths[i]] = make(map[string]interface{})
+		}
+		// Move to the next nested map
+		obj, ok = obj[paths[i]].(map[string]interface{})
+		if !ok {
+			continue
+		}
+	}
+
+	obj[paths[len(paths)-1]] = value
+}
+
+// objectsToDocument converts an array of Items to a nested map according to the Code paths.
+func ObjectsToDocument(input interface{}) (interface{}, error) {
+	trueInput, ok := input.([]interface{})
+	if !ok {
+		return nil, errors.New("$objectsToDocument input must be an array of objects")
+	}
+
+	output := make(map[string]interface{}) // Initialize the output map
+	// Iterate through each item in the input
+	for _, itemToInterface := range trueInput {
+		item, ok := itemToInterface.(map[string]interface{})
+		if !ok {
+			return nil, errors.New("$objectsToDocument input must be an array of objects with Code and Value fields")
+		}
+		// Call setValue for each item to set the value in the output map
+		code, ok := item["Code"].(string)
+		if !ok {
+			return nil, errors.New("$objectsToDocument input must be an array of objects with Code and Value fields")
+		}
+
+		value, ok := item["Value"]
+		if !ok {
+			return nil, errors.New("$objectsToDocument input must be an array of objects with Code and Value fields")
+		}
+
+		setValue(output, code, value)
+	}
+
+	return output, nil // Return the output map
 }

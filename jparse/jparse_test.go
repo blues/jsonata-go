@@ -6,12 +6,13 @@ package jparse_test
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"regexp"
 	"regexp/syntax"
 	"strings"
 	"testing"
 	"unicode/utf8"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/xiatechs/jsonata-go/jparse"
 )
