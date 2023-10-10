@@ -242,7 +242,7 @@ func setValue(obj map[string]interface{}, path string, value interface{}) {
 		if !ok {
 			obj[paths[i]] = make(map[string]interface{})
 		}
-		// Move to the next nested map
+
 		obj, ok = obj[paths[i]].(map[string]interface{})
 		if !ok {
 			continue
@@ -269,16 +269,93 @@ func ObjectsToDocument(input interface{}) (interface{}, error) {
 		// Call setValue for each item to set the value in the output map
 		code, ok := item["Code"].(string)
 		if !ok {
-			return nil, errors.New("$objectsToDocument input must be an array of objects with Code and Value fields")
+			continue
 		}
-
-		value, ok := item["Value"]
-		if !ok {
-			return nil, errors.New("$objectsToDocument input must be an array of objects with Code and Value fields")
-		}
-
+		value := item["Value"]
 		setValue(output, code, value)
 	}
 
 	return output, nil // Return the output map
+}
+
+func mergeItems(leftItem interface{}, rightItems []interface{}, rightArrayName string) map[string]interface{} {
+	mergedItem := make(map[string]interface{})
+
+	// Check if leftItem is a map or a struct and merge accordingly
+	leftVal := reflect.ValueOf(leftItem)
+	if leftVal.Kind() == reflect.Map {
+		// Merge fields from the map
+		for _, key := range leftVal.MapKeys() {
+			mergedItem[key.String()] = leftVal.MapIndex(key).Interface()
+		}
+	} else {
+		// Merge fields from the struct
+		leftType := leftVal.Type()
+		for i := 0; i < leftVal.NumField(); i++ {
+			fieldName := leftType.Field(i).Name
+			fieldValue := leftVal.Field(i).Interface()
+			mergedItem[fieldName] = fieldValue
+		}
+	}
+
+	// If there are matching items in the right array, add them under the specified name
+	if len(rightItems) > 0 {
+		mergedItem[rightArrayName] = rightItems
+	}
+
+	return mergedItem
+}
+
+func OneToManyJoin(leftArr, rightArr interface{}, leftKey, rightKey, rightArrayName string) (interface{}, error) {
+	trueLeftArr, ok := leftArr.([]interface{})
+	if !ok {
+		return nil, errors.New("left input must be an array of Objects")
+	}
+
+	trueRightArr, ok := rightArr.([]interface{})
+	if !ok {
+		return nil, errors.New("right input must be an array of Objects")
+	}
+
+	// Create a map for faster lookup of rightArr elements based on the key
+	rightMap := make(map[string][]interface{})
+	for _, item := range trueRightArr {
+		var val interface{}
+		// Check if leftItem is a map or a struct and get the key value accordingly
+		itemMap, ok := item.(map[string]interface{})
+		if ok {
+			itemKey, ok := itemMap[rightKey]
+			if ok {
+				val = itemKey
+			}
+		}
+		// Convert the key value to a string and associate it with the item in the map
+		strVal := fmt.Sprintf("%v", val)
+		rightMap[strVal] = append(rightMap[strVal], item)
+	}
+
+	// Create a slice to store the merged results
+	var result []map[string]interface{}
+
+	// Iterate through the left array and perform the join
+	for _, leftItem := range trueLeftArr {
+		var leftVal interface{}
+		// Check if leftItem is a map or a struct and get the key value accordingly
+		itemMap, ok := leftItem.(map[string]interface{})
+		if ok {
+			itemKey, ok := itemMap[leftKey]
+			if ok {
+				leftVal = itemKey
+			}
+		}
+		// Convert the key value to a string
+		strVal := fmt.Sprintf("%v", leftVal)
+		rightItems := rightMap[strVal]
+
+		// Merge the left and right items
+		mergedItem := mergeItems(leftItem, rightItems, rightArrayName)
+		result = append(result, mergedItem)
+	}
+
+	return result, nil
 }

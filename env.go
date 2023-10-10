@@ -14,6 +14,7 @@ import (
 	"github.com/xiatechs/jsonata-go/jlib"
 	"github.com/xiatechs/jsonata-go/jparse"
 	"github.com/xiatechs/jsonata-go/jtypes"
+
 )
 
 type environment struct {
@@ -96,6 +97,12 @@ var baseEnv = initBaseEnv(map[string]Extension{
 
 	"objectsToDocument": {
 		Func:               jlib.ObjectsToDocument,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
+	"oneToManyJoin": {
+		Func:               jlib.OneToManyJoin,
 		UndefinedHandler:   defaultUndefinedHandler,
 		EvalContextHandler: nil,
 	},
