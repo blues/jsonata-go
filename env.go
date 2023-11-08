@@ -14,7 +14,6 @@ import (
 	"github.com/xiatechs/jsonata-go/jlib"
 	"github.com/xiatechs/jsonata-go/jparse"
 	"github.com/xiatechs/jsonata-go/jtypes"
-
 )
 
 type environment struct {
@@ -91,6 +90,12 @@ var baseEnv = initBaseEnv(map[string]Extension{
 
 	"unescape": {
 		Func:               jlib.Unescape,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
+	"hash256": {
+		Func:               jlib.Hash,
 		UndefinedHandler:   defaultUndefinedHandler,
 		EvalContextHandler: defaultContextHandler,
 	},
