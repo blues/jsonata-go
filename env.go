@@ -94,7 +94,7 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		EvalContextHandler: defaultContextHandler,
 	},
 
-	"hash256": {
+	"hashStr": {
 		Func:               jlib.Hash,
 		UndefinedHandler:   defaultUndefinedHandler,
 		EvalContextHandler: defaultContextHandler,
