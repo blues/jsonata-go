@@ -43,8 +43,6 @@ func TestTime(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc // race protection
 
-		tc.
-
 		t.Run(tc.TestDesc, func(t *testing.T) {
 			result, err := jsonatatime.TimeDateDimensions(tc.InputSrcTs, tc.InputSrcFormat, tc.InputSrcTz)
 			require.NoError(t, err)
