@@ -149,13 +149,11 @@ func formatOffset(diff time.Duration) string {
 func getWeekOfYearString(date time.Time) string {
 	_, week := date.ISOWeek()
 
-	// Find the start of the ISO week containing the first Wednesday
 	firstWednesday := date.AddDate(0, 0, -int(date.Weekday())+1)
 	if firstWednesday.Weekday() != time.Wednesday {
 		firstWednesday = firstWednesday.AddDate(0, 0, 7-int(firstWednesday.Weekday())+int(time.Wednesday))
 	}
 
-	// Adjust week number for weeks starting from Monday and the first week containing a Wednesday
 	if date.Weekday() == time.Sunday || date.Before(firstWednesday) {
 		week--
 	}
