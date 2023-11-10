@@ -2,8 +2,14 @@ package timeparse
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
+
+// Now - for tests
+var Now = func() time.Time {
+	return time.Now()
+}
 
 // DateDim is the date dimension object returned from the timeparse function
 type DateDim struct {
@@ -15,7 +21,7 @@ type DateDim struct {
 	DateLocal      string `json:"DateLocal"`
 	HourID         string `json:"HourId"`
 	HourKey        string `json:"HourKey"`
-	Millis         string  `json:"Millis"`
+	Millis         string `json:"Millis"`
 	Hour           string `json:"Hour"`
 	TimeZone       string `json:"TimeZone"`
 	TimeZoneOffset string `json:"TimeZoneOffset"`
@@ -33,66 +39,105 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz string) (interfac
 		return nil, err
 	}
 
-	now, err := time.Parse("2006-01-02T15:04:05.000-07:00", `2020-01-01T00:00:00.000+00:00`)
+	//localLocation, err := time.LoadLocation(inputSrcTz)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	now := Now()
+
+	// TODO clean up, speed up, make more efficient etc etc - but first, get it to work!
+
+	// convert the parsed time into a UTC time for UTC calculations
+	parsedTimeUTC := parsedTime.UTC()
+
+	dateDim := DateDim{}
+
+	dateID := parsedTime.Format("20060102")
+
+	dateDim.DateID = "Dates_" + dateID
+
+	dateDim.DateKey = dateID
+
+	dateDim.Utc = parsedTimeUTC.Format("2006-01-02T15:04:05.000Z")
+
+	dateDim.Local = now.Format("2006-01-02T15:04:05.000-07:00")
+
+	dateDim.DateLocal = now.Format("2006-01-02")
+
+	utcAsYearMonthDay := parsedTimeUTC.Format("2006-01-02")
+
+	dateDim.DateUTC = utcAsYearMonthDay
+
+	dateDim.TimeZone = parsedTime.Location().String()
+
+	dateDim.HourID = "Hours_" + parsedTimeUTC.Format("2006010215")
+
+	dateDim.HourKey = parsedTimeUTC.Format("2006010215")
+
+	dateDim.Hour = strconv.Itoa(parsedTimeUTC.Hour())
+
+	dateDim.Millis = strconv.Itoa(int(parsedTimeUTC.UnixMilli()))
+
+	dateDim.YearMonth = parsedTimeUTC.Format("200601")
+
+	year, week := parsedTimeUTC.ISOWeek()
+
+	dateDim.YearIsoWeek = fmt.Sprintf("%d%02d", year, week)
+
+	mondayWeek := getWeekOfYearString(parsedTimeUTC)
+
+	dateDim.YearWeek = mondayWeek
+
+	yearDay := parsedTimeUTC.Format("2006") + parsedTimeUTC.Format("002")
+	dateDim.YearDay = yearDay
+
+	offset, err := getTimeOffsetString(parsedTimeUTC, parsedTime)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO clean up, speed up, make more efficient etc etc - but first, get it to work!
-
-	dateDim := DateDim{}
-	dateID := parsedTime.Format("20060102")
-	dateDim.DateID = "Dates_" + dateID
-	dateDim.DateKey = dateID
-	dateDim.Utc = parsedTime.UTC().Format("2006-01-02T15:04:05.000Z")
-	utcAsYearMonthDay := parsedTime.UTC().Format("2006-01-02")
-	dateDim.Local = now.Format("2006-01-02T15:04:05.000-07:00")
-	dateDim.DateLocal = now.Format("2006-01-02")
-	dateDim.DateUTC = utcAsYearMonthDay
-	dateDim.TimeZone = parsedTime.Location().String()
-	dateDim.HourID = "Hours_" + parsedTime.Format("2006010215")
-	dateDim.HourKey = parsedTime.Format("2006010215")
-	dateDim.Hour = fmt.Sprintf("%d",((parsedTime.YearDay()-1)*24 + parsedTime.Hour()))
-	dateDim.Millis = fmt.Sprintf("%d",parsedTime.UnixNano() / 1e6)
-
-	dateDim.YearMonth = parsedTime.Format("200601")
-	year, week := parsedTime.ISOWeek()
-	normalWeek := getNormalWeekNumber(parsedTime)
-	dateDim.YearIsoWeek = fmt.Sprintf("%d%02d", year, week)
-	dateDim.YearWeek = fmt.Sprintf("%d%02d", year, normalWeek)
-	yearDay := parsedTime.Format("2006") + parsedTime.Format("002")
-	dateDim.YearDay = yearDay
-	offset, _ := getTimeOffsetString(parsedTime, now)
 	dateDim.TimeZoneOffset = offset
+
 	return dateDim, nil
 }
-
 
 func getTimeOffsetString(t1, t2 time.Time) (string, error) {
 	duration := t1.Sub(t2)
 
-	// Calculate hours and minutes
-	hours := int(duration.Hours())
-	minutes := int(duration.Minutes()) % 60
-
-	// Format the offset string
-	offsetString := fmt.Sprintf("%+03d:%02d", hours, minutes)
+	offsetString := formatOffset(duration)
 
 	return offsetString, nil
 }
 
-func getNormalWeekNumber(t time.Time) int {
-	_, week := t.ISOWeek()
-	weekday := int(t.Weekday())
+func formatOffset(diff time.Duration) string {
+	sign := "+"
 
-	// Adjust week number based on the weekday
-	if weekday == 0 {
-		// Sunday, move to the previous week
-		week--
-	} else if weekday == 6 {
-		// Saturday, move to the next week
-		week++
+	if diff < 0 {
+		sign = "-"
+		diff = -diff
 	}
 
-	return week
+	hours := diff / time.Hour
+
+	minutes := (diff % time.Hour) / time.Minute
+
+	return fmt.Sprintf("%s%02d:%02d", sign, hours, minutes)
+}
+
+func getWeekOfYearString(date time.Time) string {
+	_, week := date.ISOWeek()
+
+	// Find the start of the ISO week containing the first Wednesday
+	firstWednesday := date.AddDate(0, 0, -int(date.Weekday())+1)
+	if firstWednesday.Weekday() != time.Wednesday {
+		firstWednesday = firstWednesday.AddDate(0, 0, 7-int(firstWednesday.Weekday())+int(time.Wednesday))
+	}
+
+	// Adjust week number for weeks starting from Monday and the first week containing a Wednesday
+	if date.Weekday() == time.Sunday || date.Before(firstWednesday) {
+		week--
+	}
+
+	return fmt.Sprintf("%04d%02d", date.Year(), week)
 }
