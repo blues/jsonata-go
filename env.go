@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/xiatechs/jsonata-go/jlib"
+	"github.com/xiatechs/jsonata-go/jlib/timeparse"
 	"github.com/xiatechs/jsonata-go/jparse"
 	"github.com/xiatechs/jsonata-go/jtypes"
 )
@@ -102,6 +103,12 @@ var baseEnv = initBaseEnv(map[string]Extension{
 
 	"hash256": {
 		Func:               jlib.Hash256,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
+	"dateTimeDim": {
+		Func:               timeparse.TimeDateDimensions,
 		UndefinedHandler:   defaultUndefinedHandler,
 		EvalContextHandler: defaultContextHandler,
 	},
