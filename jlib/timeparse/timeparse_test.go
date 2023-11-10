@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	jsonatatime "github.com/xiatechs/jsonata-go/jlib/timeparse"
 )
 
@@ -52,8 +52,6 @@ func TestTime(t *testing.T) {
 			require.NoError(t, err)
 
 			testObj := tc
-			
-			
 
 			expectedByts, err := json.Marshal(tc.DateDim)
 			require.NoError(t, err)
