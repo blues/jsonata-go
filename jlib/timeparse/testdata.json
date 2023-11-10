@@ -15,9 +15,7 @@
     "Millis": "1690879543000",
     "Hour": "8",
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+01:00",
     "YearMonth": "202308",
-    "YearWeek": "202331",
     "YearIsoWeek": "202331",
     "YearDay": "2023213"
   }
@@ -38,9 +36,7 @@
     "Millis": "1690879543000",
     "Hour": "8",
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+01:00",
     "YearMonth": "202308",
-    "YearWeek": "202331",
     "YearIsoWeek": "202331",
     "YearDay": "2023213"
   }
@@ -61,9 +57,7 @@
     "Millis": "1690879543666",
     "Hour": "8",
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+01:00",
     "YearMonth": "202308",
-    "YearWeek": "202331",
     "YearIsoWeek": "202331",
     "YearDay": "2023213"
   }
@@ -84,9 +78,7 @@
     "Millis": "1690933543000",
     "Hour": "23",
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+01:00",
     "YearMonth": "202308",
-    "YearWeek": "202331",
     "YearIsoWeek": "202331",
     "YearDay": "2023213"
   }
@@ -106,10 +98,8 @@
     "HourKey": "2020080122",
     "Millis": "1596321943666",
     "Hour": "22",
-    "TimeZone": "UTC",
-    "TimeZoneOffset": "+01:00",
+    "TimeZone": "Europe/London",
     "YearMonth": "202008",
-    "YearWeek": "202030",
     "YearIsoWeek": "202031",
     "YearDay": "2020214"
   }
@@ -129,10 +119,8 @@
     "HourKey": "2020010123",
     "Millis": "1577922343666",
     "Hour": "23",
-    "TimeZone": "UTC",
-    "TimeZoneOffset": "+00:00",
+    "TimeZone": "Europe/London",
     "YearMonth": "202001",
-    "YearWeek": "202000",
     "YearIsoWeek": "202001",
     "YearDay": "2020001"
   }
@@ -152,10 +140,8 @@
     "HourKey": "2020010100",
     "Millis": "1577836800000",
     "Hour": "0",
-    "TimeZone": "UTC",
-    "TimeZoneOffset": "+00:00",
+    "TimeZone": "Europe/London",
     "YearMonth": "202001",
-    "YearWeek": "202000",
     "YearIsoWeek": "202001",
     "YearDay": "2020001"
   }

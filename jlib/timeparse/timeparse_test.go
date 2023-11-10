@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	jsonatatime "github.com/xiatechs/jsonata-go/jlib/timeparse"
@@ -45,13 +44,6 @@ func TestTime(t *testing.T) {
 		tc := tc // race protection
 
 		t.Run(tc.TestDesc, func(t *testing.T) {
-			// set the jsonatatime library to the "local" time in the test data
-			now, err := time.Parse(tc.InputSrcFormat, tc.InputSrcTs)
-			require.NoError(t, err)
-			jsonatatime.Now = func() time.Time {
-				return now
-			}
-
 			result, err := jsonatatime.TimeDateDimensions(tc.InputSrcTs, tc.InputSrcFormat, tc.InputSrcTz)
 			require.NoError(t, err)
 
@@ -69,7 +61,7 @@ func TestTime(t *testing.T) {
 			require.NoError(t, err)
 
 			err = json.Unmarshal(expectedByts, &expectedDateDim)
-			require.Equal(t, expectedDateDim, actualDateDim)
+			require.Equal(t, actualDateDim, expectedDateDim)
 		})
 	}
 }
