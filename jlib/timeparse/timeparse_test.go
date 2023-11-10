@@ -41,6 +41,7 @@ func TestTime(t *testing.T) {
 	fileBytes, err := os.ReadFile("testdata.json")
 	require.NoError(t, err)
 	err = json.Unmarshal(fileBytes, &tests)
+	require.NoError(t, err)
 
 	output := make([]interface{}, 0)
 
