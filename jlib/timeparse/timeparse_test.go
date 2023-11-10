@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 	jsonatatime "github.com/xiatechs/jsonata-go/jlib/timeparse"
 )
 
@@ -17,8 +18,9 @@ type TestCase struct {
 	DateDim        struct {
 		DateID         string `json:"DateId"`
 		DateKey        string `json:"DateKey"`
-		Utc            string `json:"UTC"`
+		UTC            string `json:"UTC"`
 		DateUTC        string `json:"DateUTC"`
+		Parsed         string `json:"Parsed"`
 		Local          string `json:"Local"`
 		DateLocal      string `json:"DateLocal"`
 		HourID         string `json:"HourId"`
@@ -26,9 +28,9 @@ type TestCase struct {
 		Millis         string `json:"Millis"`
 		Hour           string `json:"Hour"`
 		TimeZone       string `json:"TimeZone"`
-		TimeZoneOffset string `json:"TimeZoneOffset"`
+		TimeZoneOffset string `json:"TimeZoneOffset"` // skip for now TODO
 		YearMonth      string `json:"YearMonth"`
-		YearWeek       string `json:"YearWeek"`
+		YearWeek       string `json:"YearWeek"` // skip for now TODO
 		YearIsoWeek    string `json:"YearIsoWeek"`
 		YearDay        string `json:"YearDay"`
 	} `json:"DateDim"`
@@ -40,12 +42,16 @@ func TestTime(t *testing.T) {
 	require.NoError(t, err)
 	err = json.Unmarshal(fileBytes, &tests)
 
+	output := make([]interface{}, 0)
+
 	for _, tc := range tests {
 		tc := tc // race protection
 
 		t.Run(tc.TestDesc, func(t *testing.T) {
 			result, err := jsonatatime.TimeDateDimensions(tc.InputSrcTs, tc.InputSrcFormat, tc.InputSrcTz)
 			require.NoError(t, err)
+
+			output = append(output, result)
 
 			expectedByts, err := json.Marshal(tc.DateDim)
 			require.NoError(t, err)
@@ -61,7 +67,10 @@ func TestTime(t *testing.T) {
 			require.NoError(t, err)
 
 			err = json.Unmarshal(expectedByts, &expectedDateDim)
-			require.Equal(t, actualDateDim, expectedDateDim)
+			assert.Equal(t, expectedDateDim, actualDateDim)
 		})
 	}
+
+	outputbytes, _ := json.MarshalIndent(output, "", " ")
+	_ = os.WriteFile("outputdata.json", outputbytes, os.ModePerm)
 }
