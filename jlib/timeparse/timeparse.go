@@ -96,8 +96,6 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz string) (interfac
 
 	dateDim.YearIsoWeek = fmt.Sprintf("%d%02d", year, week)
 
-	dateDim.YearWeek = "" // TODO
-
 	yearDay := localTime.Format("2006") + localTime.Format("002")
 
 	dateDim.YearDay = yearDay
