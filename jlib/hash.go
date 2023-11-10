@@ -8,7 +8,7 @@ import (
 
 // Hash a input string into a md5 string
 // for deduplication purposes
-func HashMD5(hashType, input string) string {
+func HashMD5(input string) string {
 	hash := md5.Sum([]byte(input))
 
 	hashedString := hex.EncodeToString(hash[:])
@@ -18,7 +18,7 @@ func HashMD5(hashType, input string) string {
 
 // Hash a input string into a sha256 string
 // for deduplication purposes
-func Hash256(hashType, input string) string {
+func Hash256(input string) string {
 	hasher := sha256.New()
 
 	hasher.Write([]byte(input))
