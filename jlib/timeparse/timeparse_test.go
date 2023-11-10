@@ -51,7 +51,9 @@ func TestTime(t *testing.T) {
 			result, err := jsonatatime.TimeDateDimensions(tc.InputSrcTs, tc.InputSrcFormat, tc.InputSrcTz)
 			require.NoError(t, err)
 
-			output = append(output, result)
+			testObj := tc
+			
+			
 
 			expectedByts, err := json.Marshal(tc.DateDim)
 			require.NoError(t, err)
@@ -66,6 +68,8 @@ func TestTime(t *testing.T) {
 			err = json.Unmarshal(actualByts, &actualDateDim)
 			require.NoError(t, err)
 
+			testObj.DateDim = actualDateDim
+			output = append(output, testObj)
 			err = json.Unmarshal(expectedByts, &expectedDateDim)
 			assert.Equal(t, expectedDateDim, actualDateDim)
 		})
