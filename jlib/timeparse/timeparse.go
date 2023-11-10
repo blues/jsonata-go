@@ -20,11 +20,13 @@ type DateDim struct {
 	Millis         string `json:"Millis"`
 	Hour           string `json:"Hour"`
 	TimeZone       string `json:"TimeZone"`
-	TimeZoneOffset string `json:"TimeZoneOffset"` // skip for now TODO
+	TimeZoneOffset string `json:"TimeZoneOffset"`
 	YearMonth      string `json:"YearMonth"`
-	YearWeek       string `json:"YearWeek"` // skip for now TODO
+	YearWeek       string `json:"YearWeek"`
 	YearIsoWeek    string `json:"YearIsoWeek"`
 	YearDay        string `json:"YearDay"`
+
+	// TODO add UTC fields
 }
 
 // TimeDateDimensions generates a JSON object dependent on input source timestamp, input source format and input source timezone
@@ -64,7 +66,7 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz string) (interfac
 	dateDim.DateKey = dateID
 
 	dateDim.Parsed = parsedTime.Format("2006-01-02T15:04:05.000Z")
-	
+
 	dateDim.Local = parsedTime.Format("2006-01-02T15:04:05.000Z-07:00")
 
 	dateDim.TimeZone = parsedTime.Location().String()
