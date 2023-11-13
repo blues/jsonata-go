@@ -113,6 +113,12 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		EvalContextHandler: defaultContextHandler,
 	},
 
+	"timeSince": {
+		Func:               timeparse.Since,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
 	"objectsToDocument": {
 		Func:               jlib.ObjectsToDocument,
 		UndefinedHandler:   defaultUndefinedHandler,

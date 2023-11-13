@@ -47,29 +47,12 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz string) (interfac
 	// convert the parsed time into a UTC time for UTC calculations
 	parsedTimeUTC := parsedTime.UTC()
 
-	dateDim := DateDim{}
-
 	// UTC TIME values
-
-	dateDim.UTC = parsedTimeUTC.Format("2006-01-02T15:04:05.000Z")
 
 	utcAsYearMonthDay := parsedTimeUTC.Format("2006-01-02")
 
-	dateDim.DateUTC = utcAsYearMonthDay
-
 	// Input time stamp TIME values (we confirmed there need to be a seperate set of UTC values)
-
 	dateID := parsedTime.Format("20060102")
-
-	dateDim.DateID = "Dates_" + dateID
-
-	dateDim.DateKey = dateID
-
-	dateDim.Parsed = parsedTime.Format("2006-01-02T15:04:05.000Z")
-
-	dateDim.Local = parsedTime.Format("2006-01-02T15:04:05.000Z-07:00")
-
-	dateDim.TimeZone = parsedTime.Location().String()
 
 	// Get the time zone offset
 	_, offset := parsedTime.Zone()
@@ -80,36 +63,37 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz string) (interfac
 	// i.2 2020-08-01+01:00 --> 2020-08-02
 	localTime := parsedTimeUTC.Add(time.Duration(offset) * time.Second)
 
-	dateDim.DateLocal = localTime.Format("2006-01-02")
-
-	dateDim.HourID = "Hours_" + localTime.Format("2006010215")
-
-	dateDim.HourKey = localTime.Format("2006010215")
-
-	dateDim.Hour = strconv.Itoa(localTime.Hour())
-
-	dateDim.Millis = strconv.Itoa(int(localTime.UnixMilli()))
-
-	dateDim.YearMonth = localTime.Format("200601")
-
 	year, week := localTime.ISOWeek()
 
-	dateDim.YearIsoWeek = fmt.Sprintf("%d%02d", year, week)
-
 	yearDay := localTime.Format("2006") + localTime.Format("002")
-
-	dateDim.YearDay = yearDay
 
 	offsetStr, err := getTimeOffsetString(localTime, parsedTime)
 	if err != nil {
 		return nil, err
 	}
 
-	dateDim.TimeZoneOffset = offsetStr
-
 	mondayWeek := getWeekOfYearString(localTime)
 
-	dateDim.YearWeek = mondayWeek
+	// construct the date dimension structure
+	dateDim := DateDim{
+		TimeZoneOffset: offsetStr,
+		YearWeek:       mondayWeek,
+		YearDay:        yearDay,
+		YearIsoWeek:    fmt.Sprintf("%d%02d", year, week),
+		YearMonth:      localTime.Format("200601"),
+		Millis:         strconv.Itoa(int(localTime.UnixMilli())),
+		Hour:           strconv.Itoa(localTime.Hour()),
+		HourKey:        localTime.Format("2006010215"),
+		HourID:         "Hours_" + localTime.Format("2006010215"),
+		DateLocal:      localTime.Format("2006-01-02"),
+		TimeZone:       parsedTime.Location().String(),
+		Local:          parsedTime.Format("2006-01-02T15:04:05.000Z-07:00"),
+		Parsed:         parsedTime.Format("2006-01-02T15:04:05.000Z"),
+		DateKey:        dateID,
+		DateID:         "Dates_" + dateID,
+		DateUTC:        utcAsYearMonthDay,
+		UTC:            parsedTimeUTC.Format("2006-01-02T15:04:05.000Z"),
+	}
 
 	return dateDim, nil
 }
