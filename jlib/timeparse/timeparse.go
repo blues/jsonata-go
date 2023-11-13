@@ -32,14 +32,7 @@ type DateDim struct {
 // TimeDateDimensions generates a JSON object dependent on input source timestamp, input source format and input source timezone
 // using golang time formats
 func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz string) (interface{}, error) {
-	location, err := time.LoadLocation(inputSrcTz)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO clean up, speed up, make more efficient etc etc - but first, get it to work!
-
-	parsedTime, err := parseDateTimeLocation(inputSrcTs, inputSrcFormat, location)
+	parsedTime, err := getTimeWithLocation(inputSrcTs, inputSrcFormat, inputSrcTz)
 	if err != nil {
 		return nil, err
 	}
