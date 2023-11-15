@@ -28,11 +28,11 @@ type TestCase struct {
 		Millis         string `json:"Millis"`
 		Hour           string `json:"Hour"`
 		TimeZone       string `json:"TimeZone"`
-		TimeZoneOffset string `json:"TimeZoneOffset"` // skip for now TODO
-		YearMonth      string `json:"YearMonth"`
-		YearWeek       string `json:"YearWeek"` // skip for now TODO
-		YearIsoWeek    string `json:"YearIsoWeek"`
-		YearDay        string `json:"YearDay"`
+		TimeZoneOffset string `json:"TimeZoneOffset"`
+		YearMonth      int `json:"YearMonth"` // int
+		YearWeek       int `json:"YearWeek"` // int
+		YearIsoWeek    int `json:"YearIsoWeek"` // int
+		YearDay        int `json:"YearDay"` // int
 	} `json:"DateDim"`
 }
 

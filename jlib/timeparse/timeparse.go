@@ -21,10 +21,10 @@ type DateDim struct {
 	Hour           string `json:"Hour"`
 	TimeZone       string `json:"TimeZone"`
 	TimeZoneOffset string `json:"TimeZoneOffset"`
-	YearMonth      string `json:"YearMonth"`
-	YearWeek       string `json:"YearWeek"`
-	YearIsoWeek    string `json:"YearIsoWeek"`
-	YearDay        string `json:"YearDay"`
+	YearMonth      int `json:"YearMonth"` // int
+	YearWeek       int `json:"YearWeek"` // int
+	YearIsoWeek    int `json:"YearIsoWeek"` // int
+	YearDay        int `json:"YearDay"` // int
 
 	// TODO add UTC fields
 }
@@ -58,26 +58,44 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz string) (interfac
 
 	year, week := localTime.ISOWeek()
 
-	yearDay := localTime.Format("2006") + localTime.Format("002")
+	yearDay, err := strconv.Atoi(localTime.Format("2006") + localTime.Format("002"))
+	if err != nil {
+		return nil, err
+	}
 
 	offsetStr, err := getTimeOffsetString(localTime, parsedTime)
 	if err != nil {
 		return nil, err
 	}
 
-	mondayWeek := getWeekOfYearString(localTime)
+	hourKeyStr := localTime.Format("2006010215")
+
+	mondayWeek, err := getWeekOfYearString(localTime)
+	if err != nil {
+		return nil, err
+	}
+
+	yearIsoWeekInt, err := strconv.Atoi(fmt.Sprintf("%d%02d", year, week))
+	if err != nil {
+		return nil, err
+	}
+
+	yearMonthInt, err := strconv.Atoi(localTime.Format("200601"))
+	if err != nil {
+		return nil, err
+	}
 
 	// construct the date dimension structure
 	dateDim := DateDim{
 		TimeZoneOffset: offsetStr,
 		YearWeek:       mondayWeek,
 		YearDay:        yearDay,
-		YearIsoWeek:    fmt.Sprintf("%d%02d", year, week),
-		YearMonth:      localTime.Format("200601"),
+		YearIsoWeek:    yearIsoWeekInt,
+		YearMonth:      yearMonthInt,
 		Millis:         strconv.Itoa(int(localTime.UnixMilli())),
 		Hour:           strconv.Itoa(localTime.Hour()),
-		HourKey:        localTime.Format("2006010215"),
-		HourID:         "Hours_" + localTime.Format("2006010215"),
+		HourKey:        hourKeyStr,
+		HourID:         "Hours_" + hourKeyStr,
 		DateLocal:      localTime.Format("2006-01-02"),
 		TimeZone:       parsedTime.Location().String(),
 		Local:          parsedTime.Format("2006-01-02T15:04:05.000Z-07:00"),
@@ -123,7 +141,7 @@ func formatOffset(diff time.Duration) string {
 	return fmt.Sprintf("%s%02d:%02d", sign, hours, minutes)
 }
 
-func getWeekOfYearString(date time.Time) string {
+func getWeekOfYearString(date time.Time) (int, error) {
 	_, week := date.ISOWeek()
 
 	firstWednesday := date.AddDate(0, 0, -int(date.Weekday())+1)
@@ -135,5 +153,5 @@ func getWeekOfYearString(date time.Time) string {
 		week--
 	}
 
-	return fmt.Sprintf("%04d%02d", date.Year(), week)
+	return strconv.Atoi(fmt.Sprintf("%04d%02d", date.Year(), week))
 }

@@ -17,10 +17,10 @@
     "Hour": "0",
     "TimeZone": "Europe/London",
     "TimeZoneOffset": "+01:00",
-    "YearMonth": "202008",
-    "YearWeek": "202030",
-    "YearIsoWeek": "202031",
-    "YearDay": "2020215"
+    "YearMonth": 202008,
+    "YearWeek": 202030,
+    "YearIsoWeek": 202031,
+    "YearDay": 2020215
    }
 },
   {
@@ -42,10 +42,10 @@
       "Hour": "9",
       "TimeZone": "Europe/London",
       "TimeZoneOffset": "+01:00",
-      "YearMonth": "202308",
-      "YearWeek": "202330",
-      "YearIsoWeek": "202331",
-      "YearDay": "2023213"
+      "YearMonth": 202308,
+      "YearWeek": 202330,
+      "YearIsoWeek": 202331,
+      "YearDay": 2023213
      }
   },
   
@@ -68,9 +68,9 @@
     "Hour": "0",
     "TimeZone": "Europe/London",
     "TimeZoneOffset": "+00:00",
-    "YearMonth": "202001",
-    "YearWeek": "202000",
-    "YearIsoWeek": "202001",
-    "YearDay": "2020001"
+    "YearMonth": 202001,
+    "YearWeek": 202000,
+    "YearIsoWeek": 202001,
+    "YearDay": 2020001
    }
 }]
