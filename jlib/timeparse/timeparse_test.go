@@ -17,29 +17,28 @@ type TestCase struct {
 	InputSrcTz     string `json:"input_srcTz"`
 	OutputSrcTz    string `json:"output_srcTz"`
 	DateDim        struct {
-	// Other
-	TimeZone       string `json:"TimeZone"`             // lite
-	TimeZoneOffset string `json:"TimeZoneOffset"`       // lite
-	YearMonth      int `json:"YearMonth"` // int
-	YearWeek       int `json:"YearWeek"` // int
-	YearIsoWeek    int `json:"YearIsoWeek"` // int
-	YearDay        int `json:"YearDay"` // int
-	DateID         string `json:"DateId"`               // lite
-	DateKey        string `json:"DateKey"`              // lite
-	HourID         string `json:"HourId"`
-	HourKey        string `json:"HourKey"`
-	Millis         int `json:"Millis"`                  // lite
+		// Other
+		TimeZone       string `json:"TimeZone"`       // lite
+		TimeZoneOffset string `json:"TimeZoneOffset"` // lite
+		YearMonth      int    `json:"YearMonth"`      // int
+		YearWeek       int    `json:"YearWeek"`       // int
+		YearIsoWeek    int    `json:"YearIsoWeek"`    // int
+		YearDay        int    `json:"YearDay"`        // int
+		DateID         string `json:"DateId"`         // lite
+		DateKey        string `json:"DateKey"`        // lite
+		HourID         string `json:"HourId"`
+		HourKey        string `json:"HourKey"`
+		Millis         int    `json:"Millis"` // lite
 
-	// UTC
-	UTC            string `json:"UTC"`                  // lite
-	DateUTC        string `json:"DateUTC"`              // lite
-	HourUTC        int `json:"HourUTC"`
+		// UTC
+		UTC     string `json:"UTC"`     // lite
+		DateUTC string `json:"DateUTC"` // lite
+		HourUTC int    `json:"HourUTC"`
 
-
-	// Local
-	Local          string `json:"Local"`                // lite
-	DateLocal      string `json:"DateLocal"`            // lite
-	Hour           int `json:"Hour"`
+		// Local
+		Local     string `json:"Local"`     // lite
+		DateLocal string `json:"DateLocal"` // lite
+		Hour      int    `json:"Hour"`
 	} `json:"DateDim"`
 }
 

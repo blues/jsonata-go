@@ -3,34 +3,34 @@ package timeparse
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
 // DateDim is the date dimension object returned from the timeparse function
 type DateDim struct {
 	// Other
-	TimeZone       string `json:"TimeZone"`             // lite
-	TimeZoneOffset string `json:"TimeZoneOffset"`       // lite
-	YearMonth      int `json:"YearMonth"` // int
-	YearWeek       int `json:"YearWeek"` // int
-	YearIsoWeek    int `json:"YearIsoWeek"` // int
-	YearDay        int `json:"YearDay"` // int
-	DateID         string `json:"DateId"`               // lite
-	DateKey        string `json:"DateKey"`              // lite
+	TimeZone       string `json:"TimeZone"`       // lite
+	TimeZoneOffset string `json:"TimeZoneOffset"` // lite
+	YearMonth      int    `json:"YearMonth"`      // int
+	YearWeek       int    `json:"YearWeek"`       // int
+	YearIsoWeek    int    `json:"YearIsoWeek"`    // int
+	YearDay        int    `json:"YearDay"`        // int
+	DateID         string `json:"DateId"`         // lite
+	DateKey        string `json:"DateKey"`        // lite
 	HourID         string `json:"HourId"`
 	HourKey        string `json:"HourKey"`
-	Millis         int `json:"Millis"`                  // lite
+	Millis         int    `json:"Millis"` // lite
 
 	// UTC
-	UTC            string `json:"UTC"`                  // lite
-	DateUTC        string `json:"DateUTC"`              // lite
-	HourUTC        int `json:"HourUTC"`
-
+	UTC     string `json:"UTC"`     // lite
+	DateUTC string `json:"DateUTC"` // lite
+	HourUTC int    `json:"HourUTC"`
 
 	// Local
-	Local          string `json:"Local"`                // lite
-	DateLocal      string `json:"DateLocal"`            // lite
-	Hour           int `json:"Hour"`
+	Local     string `json:"Local"`     // lite
+	DateLocal string `json:"DateLocal"` // lite
+	Hour      int    `json:"Hour"`
 }
 
 // TimeDateDimensions generates a JSON object dependent on input source timestamp, input source format and input source timezone
@@ -55,7 +55,7 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 	localTime := inputTime.In(outputLocation)
 
 	// convert the parsed time into a UTC time for UTC calculations
-	utcTime := inputTime.UTC()
+	utcTime := localTime.UTC()
 
 	// UTC TIME values
 
@@ -67,16 +67,6 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 	year, week := localTime.ISOWeek()
 
 	yearDay, err := strconv.Atoi(localTime.Format("2006") + localTime.Format("002"))
-	if err != nil {
-		return nil, err
-	}
-
-	// Get the time zone offset
-	_, offset := localTime.Zone()
-
-	timeDiff := localTime.Add(time.Duration(offset) * time.Second)
-
-	offsetStr, err := getTimeOffsetString(timeDiff, inputTime)
 	if err != nil {
 		return nil, err
 	}
@@ -98,9 +88,10 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		return nil, err
 	}
 
+	localTimeStamp := localTime.Format("2006-01-02T15:04:05.000Z-07:00")
 	// construct the date dimension structure
 	dateDim := DateDim{
-		TimeZoneOffset: offsetStr,
+		TimeZoneOffset: getOffsetString(localTimeStamp),
 		YearWeek:       mondayWeek,
 		YearDay:        yearDay,
 		YearIsoWeek:    yearIsoWeekInt,
@@ -111,7 +102,7 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		HourID:         "Hours_" + hourKeyStr,
 		DateLocal:      localTime.Format("2006-01-02"),
 		TimeZone:       localTime.Location().String(),
-		Local:          localTime.Format("2006-01-02T15:04:05.000Z-07:00"),
+		Local:          localTimeStamp,
 		DateKey:        dateID,
 		DateID:         "Dates_" + dateID,
 		DateUTC:        utcAsYearMonthDay,
@@ -131,27 +122,18 @@ func parseDateTimeLocation(d string, layout string, location *time.Location) (ti
 	return date.In(location), nil
 }
 
-func getTimeOffsetString(t1, t2 time.Time) (string, error) {
-	duration := t1.Sub(t2)
-
-	offsetString := formatOffset(duration)
-
-	return offsetString, nil
-}
-
-func formatOffset(diff time.Duration) string {
-	sign := "+"
-
-	if diff < 0 {
-		sign = "-"
-		diff = -diff
+func getOffsetString(input string) string {
+	znegArr := strings.Split(input, "Z-")
+	if len(znegArr) == 2 {
+		return "-" + znegArr[1]
 	}
 
-	hours := diff / time.Hour
+	zposArr := strings.Split(input, "Z+")
+	if len(zposArr) == 2 {
+		return "+" + zposArr[1]
+	}
 
-	minutes := (diff % time.Hour) / time.Minute
-
-	return fmt.Sprintf("%s%02d:%02d", sign, hours, minutes)
+	return "+00:00"
 }
 
 func getWeekOfYearString(date time.Time) (int, error) {

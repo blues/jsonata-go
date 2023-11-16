@@ -78,6 +78,32 @@
    }
   },
   {
+   "testDesc": "/* UTC = 2023-08-05T23:23:41.454 -- Local = 2023-08-06T00:23:41.454Z-01:00 */",
+   "input_srcTs": "2023-08-06T00:23:41.454-01:00",
+   "input_srcFormat": "2006-01-02T15:04:05.999999999Z07:00",
+   "input_srcTz": "Europe/London",
+   "output_srcTz": "Europe/London",
+   "DateDim": {
+    "TimeZone": "Europe/London",
+    "TimeZoneOffset": "+01:00",
+    "YearMonth": 202308,
+    "YearWeek": 202330,
+    "YearIsoWeek": 202331,
+    "YearDay": 2023218,
+    "DateId": "Dates_20230806",
+    "DateKey": "20230806",
+    "HourId": "Hours_2023080602",
+    "HourKey": "2023080602",
+    "Millis": 1691285021454,
+    "UTC": "2023-08-06T01:23:41.454Z",
+    "DateUTC": "2023-08-06",
+    "HourUTC": 1,
+    "Local": "2023-08-06T02:23:41.454Z+01:00",
+    "DateLocal": "2023-08-06",
+    "Hour": 2
+   }
+  },
+  {
    "testDesc": "/* source impliciti TZ, bad use of a 'Z' whici is meant to meant UTC - same output as above as equiv */",
    "input_srcTs": "2023-08-06T00:23:41.454Z",
    "input_srcFormat": "2006-01-02T15:04:05.000Z",
