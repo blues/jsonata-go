@@ -35,7 +35,7 @@ type DateDim struct {
 
 // TimeDateDimensions generates a JSON object dependent on input source timestamp, input source format and input source timezone
 // using golang time formats
-func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz string) (interface{}, error) {
+func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz string) (*DateDim, error) {
 	inputLocation, err := time.LoadLocation(inputSrcTz)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 
 	localTimeStamp := localTime.Format("2006-01-02T15:04:05.000Z-07:00")
 	// construct the date dimension structure
-	dateDim := DateDim{
+	dateDim := &DateDim{
 		TimeZoneOffset: getOffsetString(localTimeStamp),
 		YearWeek:       mondayWeek,
 		YearDay:        yearDay,

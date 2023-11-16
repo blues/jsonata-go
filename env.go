@@ -113,6 +113,12 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		EvalContextHandler: defaultContextHandler,
 	},
 
+	"dateTimeDimLite": {
+		Func:               timeparse.TimeDateDimensionsLite,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
 	"timeSince": {
 		Func:               timeparse.Since,
 		UndefinedHandler:   defaultUndefinedHandler,
