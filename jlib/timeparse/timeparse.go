@@ -36,31 +36,33 @@ type DateDim struct {
 // TimeDateDimensions generates a JSON object dependent on input source timestamp, input source format and input source timezone
 // using golang time formats
 func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz string) (interface{}, error) {
-	parsedTime, err := getTimeWithLocation(inputSrcTs, inputSrcFormat, inputSrcTz)
+	inputLocation, err := time.LoadLocation(inputSrcTz)
 	if err != nil {
 		return nil, err
 	}
 
-	// take in parsed time and put .In(location (second param))
+	inputTime, err := parseDateTimeLocation(inputSrcTs, inputSrcFormat, inputLocation)
+	if err != nil {
+		return nil, err
+	}
+
+	outputLocation, err := time.LoadLocation(requiredTz)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the time to the output time zone
+	localTime := inputTime.In(outputLocation)
 
 	// convert the parsed time into a UTC time for UTC calculations
-	parsedTimeUTC := parsedTime.UTC()
+	utcTime := inputTime.UTC()
 
 	// UTC TIME values
 
-	utcAsYearMonthDay := parsedTimeUTC.Format("2006-01-02")
+	utcAsYearMonthDay := utcTime.Format("2006-01-02")
 
 	// Input time stamp TIME values (we confirmed there need to be a seperate set of UTC values)
-	dateID := parsedTime.Format("20060102")
-
-	// LOCAL TIME VALUES ()
-	newLocation, err := time.LoadLocation(requiredTz)
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	// this is the "local time" to the new time zone location
-	localTime := parsedTime.In(newLocation)
+	dateID := localTime.Format("20060102")
 
 	year, week := localTime.ISOWeek()
 
@@ -70,11 +72,11 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 	}
 
 	// Get the time zone offset
-	_, offset := parsedTime.Zone()
+	_, offset := localTime.Zone()
 
-	timeDiff := parsedTimeUTC.Add(time.Duration(offset) * time.Second)
+	timeDiff := localTime.Add(time.Duration(offset) * time.Second)
 
-	offsetStr, err := getTimeOffsetString(timeDiff, parsedTimeUTC)
+	offsetStr, err := getTimeOffsetString(timeDiff, inputTime)
 	if err != nil {
 		return nil, err
 	}
@@ -108,13 +110,13 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		HourKey:        hourKeyStr,
 		HourID:         "Hours_" + hourKeyStr,
 		DateLocal:      localTime.Format("2006-01-02"),
-		TimeZone:       parsedTime.Location().String(),
-		Local:          parsedTime.Format("2006-01-02T15:04:05.000Z-07:00"),
+		TimeZone:       localTime.Location().String(),
+		Local:          localTime.Format("2006-01-02T15:04:05.000Z-07:00"),
 		DateKey:        dateID,
 		DateID:         "Dates_" + dateID,
 		DateUTC:        utcAsYearMonthDay,
-		UTC:            parsedTimeUTC.Format("2006-01-02T15:04:05.000Z"),
-		HourUTC:        parsedTimeUTC.Hour(),
+		UTC:            utcTime.Format("2006-01-02T15:04:05.000Z"),
+		HourUTC:        utcTime.Hour(),
 	}
 
 	return dateDim, nil
