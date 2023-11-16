@@ -15,24 +15,31 @@ type TestCase struct {
 	InputSrcTs     string `json:"input_srcTs"`
 	InputSrcFormat string `json:"input_srcFormat"`
 	InputSrcTz     string `json:"input_srcTz"`
+	OutputSrcTz    string `json:"output_srcTz"`
 	DateDim        struct {
-		DateID         string `json:"DateId"`
-		DateKey        string `json:"DateKey"`
-		UTC            string `json:"UTC"`
-		DateUTC        string `json:"DateUTC"`
-		Parsed         string `json:"Parsed"`
-		Local          string `json:"Local"`
-		DateLocal      string `json:"DateLocal"`
-		HourID         string `json:"HourId"`
-		HourKey        string `json:"HourKey"`
-		Millis         string `json:"Millis"`
-		Hour           string `json:"Hour"`
-		TimeZone       string `json:"TimeZone"`
-		TimeZoneOffset string `json:"TimeZoneOffset"`
-		YearMonth      int `json:"YearMonth"` // int
-		YearWeek       int `json:"YearWeek"` // int
-		YearIsoWeek    int `json:"YearIsoWeek"` // int
-		YearDay        int `json:"YearDay"` // int
+	// Other
+	TimeZone       string `json:"TimeZone"`             // lite
+	TimeZoneOffset string `json:"TimeZoneOffset"`       // lite
+	YearMonth      int `json:"YearMonth"` // int
+	YearWeek       int `json:"YearWeek"` // int
+	YearIsoWeek    int `json:"YearIsoWeek"` // int
+	YearDay        int `json:"YearDay"` // int
+	DateID         string `json:"DateId"`               // lite
+	DateKey        string `json:"DateKey"`              // lite
+	HourID         string `json:"HourId"`
+	HourKey        string `json:"HourKey"`
+	Millis         int `json:"Millis"`                  // lite
+
+	// UTC
+	UTC            string `json:"UTC"`                  // lite
+	DateUTC        string `json:"DateUTC"`              // lite
+	HourUTC        string `json:"HourUTC"`
+
+
+	// Local
+	Local          string `json:"Local"`                // lite
+	DateLocal      string `json:"DateLocal"`            // lite
+	Hour           string `json:"Hour"`
 	} `json:"DateDim"`
 }
 
@@ -49,7 +56,7 @@ func TestTime(t *testing.T) {
 		tc := tc // race protection
 
 		t.Run(tc.TestDesc, func(t *testing.T) {
-			result, err := jsonatatime.TimeDateDimensions(tc.InputSrcTs, tc.InputSrcFormat, tc.InputSrcTz)
+			result, err := jsonatatime.TimeDateDimensions(tc.InputSrcTs, tc.InputSrcFormat, tc.InputSrcTz, tc.OutputSrcTz)
 			require.NoError(t, err)
 
 			testObj := tc

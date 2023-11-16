@@ -8,34 +8,40 @@ import (
 
 // DateDim is the date dimension object returned from the timeparse function
 type DateDim struct {
-	DateID         string `json:"DateId"`
-	DateKey        string `json:"DateKey"`
-	UTC            string `json:"UTC"`
-	DateUTC        string `json:"DateUTC"`
-	Parsed         string `json:"Parsed"`
-	Local          string `json:"Local"`
-	DateLocal      string `json:"DateLocal"`
-	HourID         string `json:"HourId"`
-	HourKey        string `json:"HourKey"`
-	Millis         string `json:"Millis"`
-	Hour           string `json:"Hour"`
-	TimeZone       string `json:"TimeZone"`
-	TimeZoneOffset string `json:"TimeZoneOffset"`
+	// Other
+	TimeZone       string `json:"TimeZone"`             // lite
+	TimeZoneOffset string `json:"TimeZoneOffset"`       // lite
 	YearMonth      int `json:"YearMonth"` // int
 	YearWeek       int `json:"YearWeek"` // int
 	YearIsoWeek    int `json:"YearIsoWeek"` // int
 	YearDay        int `json:"YearDay"` // int
+	DateID         string `json:"DateId"`               // lite
+	DateKey        string `json:"DateKey"`              // lite
+	HourID         string `json:"HourId"`
+	HourKey        string `json:"HourKey"`
+	Millis         int `json:"Millis"`                  // lite
 
-	// TODO add UTC fields
+	// UTC
+	UTC            string `json:"UTC"`                  // lite
+	DateUTC        string `json:"DateUTC"`              // lite
+	HourUTC        string `json:"HourUTC"`
+
+
+	// Local
+	Local          string `json:"Local"`                // lite
+	DateLocal      string `json:"DateLocal"`            // lite
+	Hour           string `json:"Hour"`
 }
 
 // TimeDateDimensions generates a JSON object dependent on input source timestamp, input source format and input source timezone
 // using golang time formats
-func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz string) (interface{}, error) {
+func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz string) (interface{}, error) {
 	parsedTime, err := getTimeWithLocation(inputSrcTs, inputSrcFormat, inputSrcTz)
 	if err != nil {
 		return nil, err
 	}
+
+	// take in parsed time and put .In(location (second param))
 
 	// convert the parsed time into a UTC time for UTC calculations
 	parsedTimeUTC := parsedTime.UTC()
@@ -47,14 +53,14 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz string) (interfac
 	// Input time stamp TIME values (we confirmed there need to be a seperate set of UTC values)
 	dateID := parsedTime.Format("20060102")
 
-	// Get the time zone offset
-	_, offset := parsedTime.Zone()
+	// LOCAL TIME VALUES ()
+	newLocation, err := time.LoadLocation(requiredTz)
+	if err != nil {
+		return time.Time{}, err
+	}
 
-	// LOCAL TIME VALUES
-
-	// this is the "local time" with offset removed, and added to the time itself
-	// i.2 2020-08-01+01:00 --> 2020-08-02
-	localTime := parsedTimeUTC.Add(time.Duration(offset) * time.Second)
+	// this is the "local time" to the new time zone location
+	localTime := parsedTime.In(newLocation)
 
 	year, week := localTime.ISOWeek()
 
@@ -92,14 +98,13 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz string) (interfac
 		YearDay:        yearDay,
 		YearIsoWeek:    yearIsoWeekInt,
 		YearMonth:      yearMonthInt,
-		Millis:         strconv.Itoa(int(localTime.UnixMilli())),
+		Millis:         int(localTime.UnixMilli()),
 		Hour:           strconv.Itoa(localTime.Hour()),
 		HourKey:        hourKeyStr,
 		HourID:         "Hours_" + hourKeyStr,
 		DateLocal:      localTime.Format("2006-01-02"),
 		TimeZone:       parsedTime.Location().String(),
 		Local:          parsedTime.Format("2006-01-02T15:04:05.000Z-07:00"),
-		Parsed:         parsedTime.Format("2006-01-02T15:04:05.000Z"),
 		DateKey:        dateID,
 		DateID:         "Dates_" + dateID,
 		DateUTC:        utcAsYearMonthDay,
