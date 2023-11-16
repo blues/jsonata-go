@@ -109,6 +109,7 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		DateID:         "Dates_" + dateID,
 		DateUTC:        utcAsYearMonthDay,
 		UTC:            parsedTimeUTC.Format("2006-01-02T15:04:05.000Z"),
+		HourUTC:        strconv.Itoa(parsedTimeUTC.Hour()),
 	}
 
 	return dateDim, nil
