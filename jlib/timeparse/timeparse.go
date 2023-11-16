@@ -24,13 +24,13 @@ type DateDim struct {
 	// UTC
 	UTC            string `json:"UTC"`                  // lite
 	DateUTC        string `json:"DateUTC"`              // lite
-	HourUTC        string `json:"HourUTC"`
+	HourUTC        int `json:"HourUTC"`
 
 
 	// Local
 	Local          string `json:"Local"`                // lite
 	DateLocal      string `json:"DateLocal"`            // lite
-	Hour           string `json:"Hour"`
+	Hour           int `json:"Hour"`
 }
 
 // TimeDateDimensions generates a JSON object dependent on input source timestamp, input source format and input source timezone
@@ -69,7 +69,12 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		return nil, err
 	}
 
-	offsetStr, err := getTimeOffsetString(localTime, parsedTime)
+	// Get the time zone offset
+	_, offset := parsedTime.Zone()
+
+	timeDiff := parsedTimeUTC.Add(time.Duration(offset) * time.Second)
+
+	offsetStr, err := getTimeOffsetString(timeDiff, parsedTimeUTC)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +104,7 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		YearIsoWeek:    yearIsoWeekInt,
 		YearMonth:      yearMonthInt,
 		Millis:         int(localTime.UnixMilli()),
-		Hour:           strconv.Itoa(localTime.Hour()),
+		Hour:           localTime.Hour(),
 		HourKey:        hourKeyStr,
 		HourID:         "Hours_" + hourKeyStr,
 		DateLocal:      localTime.Format("2006-01-02"),
@@ -109,7 +114,7 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		DateID:         "Dates_" + dateID,
 		DateUTC:        utcAsYearMonthDay,
 		UTC:            parsedTimeUTC.Format("2006-01-02T15:04:05.000Z"),
-		HourUTC:        strconv.Itoa(parsedTimeUTC.Hour()),
+		HourUTC:        parsedTimeUTC.Hour(),
 	}
 
 	return dateDim, nil

@@ -33,13 +33,13 @@ type TestCase struct {
 	// UTC
 	UTC            string `json:"UTC"`                  // lite
 	DateUTC        string `json:"DateUTC"`              // lite
-	HourUTC        string `json:"HourUTC"`
+	HourUTC        int `json:"HourUTC"`
 
 
 	// Local
 	Local          string `json:"Local"`                // lite
 	DateLocal      string `json:"DateLocal"`            // lite
-	Hour           string `json:"Hour"`
+	Hour           int `json:"Hour"`
 	} `json:"DateDim"`
 }
 
