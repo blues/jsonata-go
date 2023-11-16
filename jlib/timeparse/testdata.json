@@ -78,7 +78,7 @@
    }
   },
   {
-   "testDesc": "/* UTC = 2023-08-05T23:23:41.454 -- Local = 2023-08-06T00:23:41.454Z-01:00 */",
+   "testDesc": "/* does this test make sense to you ? i changed it to -01:00 for input */",
    "input_srcTs": "2023-08-06T00:23:41.454-01:00",
    "input_srcFormat": "2006-01-02T15:04:05.999999999Z07:00",
    "input_srcTz": "Europe/London",
