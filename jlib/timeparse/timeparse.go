@@ -31,7 +31,7 @@ type DateDim struct {
 	// Local
 	Local     string `json:"Local"`     // lite
 	DateLocal string `json:"DateLocal"` // lite
-	Hour      int    `json:"Hour"`
+	HourLocal int    `json:"HourLocal"`
 }
 
 // TimeDateDimensions generates a JSON object dependent on input source timestamp, input source format and input source timezone
@@ -100,7 +100,7 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		YearIsoWeek:    yearIsoWeekInt,
 		YearMonth:      yearMonthInt,
 		Millis:         int(localTime.UnixMilli()),
-		Hour:           localTime.Hour(),
+		HourLocal:      localTime.Hour(),
 		HourKey:        hourKeyStr,
 		HourID:         "Hours_" + hourKeyStr,
 		DateLocal:      localTime.Format("2006-01-02"),

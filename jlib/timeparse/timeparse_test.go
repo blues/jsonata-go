@@ -39,7 +39,7 @@ type TestCase struct {
 		// Local
 		Local     string `json:"Local"`     // lite
 		DateLocal string `json:"DateLocal"` // lite
-		Hour      int    `json:"Hour"`
+		HourLocal int    `json:"HourLocal"`
 	} `json:"DateDim"`
 }
 
