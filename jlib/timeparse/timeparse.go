@@ -42,7 +42,9 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		return nil, err
 	}
 
-	inputTime, err := parseDateTimeLocation(inputSrcTs, inputSrcFormat, inputLocation)
+	// Since the source timestamp is implied to be in local time ("Europe/London"),
+	// we parse it with the location set to Europe/London
+	inputTime, err := time.ParseInLocation(inputSrcFormat, inputSrcTs, inputLocation)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +54,6 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		return nil, err
 	}
 
-	// Convert the time to the output time zone
 	localTime := inputTime.In(outputLocation)
 
 	// convert the parsed time into a UTC time for UTC calculations
@@ -89,7 +90,7 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		return nil, err
 	}
 
-	localTimeStamp := localTime.Format("2006-01-02T15:04:05.000Z-07:00")
+	localTimeStamp := localTime.Format("2006-01-02T15:04:05.000Z-07:00") // 2006-01-02T15:04:05.000 Z07:00
 	// construct the date dimension structure
 	dateDim := &DateDim{
 		RawValue: inputSrcTs,
