@@ -18,3 +18,4 @@
 
 # specific files
 jlib/timeparse/outputdata.json
+jlib/timeparse/outputdata_lite.json

@@ -84,3 +84,45 @@ func TestTime(t *testing.T) {
 	outputbytes, _ := json.MarshalIndent(output, "", " ")
 	_ = os.WriteFile("outputdata.json", outputbytes, os.ModePerm)
 }
+
+func TestTimeLite(t *testing.T) {
+	tests := []TestCase{}
+	fileBytes, err := os.ReadFile("testdata_lite.json")
+	require.NoError(t, err)
+	err = json.Unmarshal(fileBytes, &tests)
+	require.NoError(t, err)
+
+	output := make([]interface{}, 0)
+
+	for _, tc := range tests {
+		tc := tc // race protection
+
+		t.Run(tc.TestDesc, func(t *testing.T) {
+			result, err := jsonatatime.TimeDateDimensionsLite(tc.InputSrcTs, tc.InputSrcFormat, tc.InputSrcTz, tc.OutputSrcTz)
+			require.NoError(t, err)
+
+			testObj := tc
+
+			expectedByts, err := json.Marshal(tc.DateDim)
+			require.NoError(t, err)
+
+			expectedDateDim := jsonatatime.DateDim{}
+
+			actualByts, err := json.Marshal(result)
+			require.NoError(t, err)
+
+			actualDateDim := jsonatatime.DateDim{}
+
+			err = json.Unmarshal(actualByts, &actualDateDim)
+			require.NoError(t, err)
+
+			testObj.DateDim = actualDateDim
+			output = append(output, testObj)
+			err = json.Unmarshal(expectedByts, &expectedDateDim)
+			assert.Equal(t, expectedDateDim, actualDateDim)
+		})
+	}
+
+	outputbytes, _ := json.MarshalIndent(output, "", " ")
+	_ = os.WriteFile("outputdata_lite.json", outputbytes, os.ModePerm)
+}
