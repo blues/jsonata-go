@@ -90,7 +90,7 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		return nil, err
 	}
 
-	localTimeStamp := localTime.Format("2006-01-02T15:04:05.000Z-07:00") // 2006-01-02T15:04:05.000 Z07:00
+	localTimeStamp := localTime.Format("2006-01-02T15:04:05.000-07:00")
 	// construct the date dimension structure
 	dateDim := &DateDim{
 		RawValue:       inputSrcTs,

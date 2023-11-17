@@ -36,7 +36,7 @@ func TimeDateDimensionsLite(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz s
 	// Input time stamp TIME values (we confirmed there need to be a seperate set of UTC values)
 	dateID := localTime.Format("20060102")
 
-	localTimeStamp := localTime.Format("2006-01-02T15:04:05.000Z-07:00")
+	localTimeStamp := localTime.Format("2006-01-02T15:04:05.000-07:00")
 	// construct the date dimension structure
 	dateDim := &DateDim{
 		RawValue:       inputSrcTs,

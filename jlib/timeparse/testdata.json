@@ -21,7 +21,7 @@
     "UTC": "2023-08-06T00:23:41.000Z",
     "DateUTC": "2023-08-06",
     "HourUTC": 0,
-    "Local": "2023-08-06T00:23:41.000Z+00:00",
+    "Local": "2023-08-06T00:23:41.000+00:00",
     "DateLocal": "2023-08-06",
     "HourLocal": 0
    }
@@ -34,7 +34,7 @@
    "output_srcTz": "Europe/London",
    "DateDim": {
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+01:00",
+    "TimeZoneOffset": "+00:00",
     "YearMonth": 202308,
     "YearWeek": 202330,
     "YearIsoWeek": 202331,
@@ -48,7 +48,7 @@
     "UTC": "2023-08-06T00:23:41.454Z",
     "DateUTC": "2023-08-06",
     "HourUTC": 0,
-    "Local": "2023-08-06T01:23:41.454Z+01:00",
+    "Local": "2023-08-06T01:23:41.454+01:00",
     "DateLocal": "2023-08-06",
     "HourLocal": 1
    }
@@ -61,7 +61,7 @@
    "output_srcTz": "Europe/London",
    "DateDim": {
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+01:00",
+    "TimeZoneOffset": "+00:00",
     "YearMonth": 202308,
     "YearWeek": 202330,
     "YearIsoWeek": 202331,
@@ -75,7 +75,7 @@
     "UTC": "2023-08-05T23:23:41.454Z",
     "DateUTC": "2023-08-05",
     "HourUTC": 23,
-    "Local": "2023-08-06T00:23:41.454Z+01:00",
+    "Local": "2023-08-06T00:23:41.454+01:00",
     "DateLocal": "2023-08-06",
     "HourLocal": 0
    }
@@ -88,7 +88,7 @@
    "output_srcTz": "Europe/London",
    "DateDim": {
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+01:00",
+    "TimeZoneOffset": "+00:00",
     "YearMonth": 202308,
     "YearWeek": 202330,
     "YearIsoWeek": 202331,
@@ -102,7 +102,7 @@
     "UTC": "2023-08-05T23:23:41.454Z",
     "DateUTC": "2023-08-05",
     "HourUTC": 23,
-    "Local": "2023-08-06T00:23:41.454Z+01:00",
+    "Local": "2023-08-06T00:23:41.454+01:00",
     "DateLocal": "2023-08-06",
     "HourLocal": 0
    }
@@ -115,7 +115,7 @@
    "output_srcTz": "America/New_York",
    "DateDim": {
     "TimeZone": "America/New_York",
-    "TimeZoneOffset": "-04:00",
+    "TimeZoneOffset": "+00:00",
     "YearMonth": 202308,
     "YearWeek": 202330,
     "YearIsoWeek": 202331,
@@ -129,7 +129,7 @@
     "UTC": "2023-08-05T23:23:41.454Z",
     "DateUTC": "2023-08-05",
     "HourUTC": 23,
-    "Local": "2023-08-05T19:23:41.454Z-04:00",
+    "Local": "2023-08-05T19:23:41.454-04:00",
     "DateLocal": "2023-08-05",
     "HourLocal": 19
    }
@@ -142,7 +142,7 @@
    "output_srcTz": "Europe/London",
    "DateDim": {
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+01:00",
+    "TimeZoneOffset": "+00:00",
     "YearMonth": 202308,
     "YearWeek": 202330,
     "YearIsoWeek": 202331,
@@ -156,7 +156,7 @@
     "UTC": "2023-08-05T23:23:41.454Z",
     "DateUTC": "2023-08-05",
     "HourUTC": 23,
-    "Local": "2023-08-06T00:23:41.454Z+01:00",
+    "Local": "2023-08-06T00:23:41.454+01:00",
     "DateLocal": "2023-08-06",
     "HourLocal": 0
    }
@@ -183,7 +183,7 @@
     "UTC": "2023-01-06T00:23:41.454Z",
     "DateUTC": "2023-01-06",
     "HourUTC": 0,
-    "Local": "2023-01-06T00:23:41.454Z+00:00",
+    "Local": "2023-01-06T00:23:41.454+00:00",
     "DateLocal": "2023-01-06",
     "HourLocal": 0
    }
