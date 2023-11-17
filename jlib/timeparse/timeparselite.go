@@ -12,7 +12,9 @@ func TimeDateDimensionsLite(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz s
 		return nil, err
 	}
 
-	inputTime, err := parseDateTimeLocation(inputSrcTs, inputSrcFormat, inputLocation)
+	// Since the source timestamp is implied to be in local time ("Europe/London"),
+	// we parse it with the location set to Europe/London
+	inputTime, err := time.ParseInLocation(inputSrcFormat, inputSrcTs, inputLocation)
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +24,6 @@ func TimeDateDimensionsLite(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz s
 		return nil, err
 	}
 
-	// Convert the time to the output time zone
 	localTime := inputTime.In(outputLocation)
 
 	// convert the parsed time into a UTC time for UTC calculations
