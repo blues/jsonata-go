@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 // Count (golint)

@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 var reNumber = regexp.MustCompile(`^-?(([0-9]+))(\.[0-9]+)?([Ee][-+]?[0-9]+)?$`)
@@ -116,7 +116,7 @@ func Random() float64 {
 // It does this by converting back and forth to strings to
 // avoid floating point rounding errors, e.g.
 //
-//     4.525 * math.Pow10(2) returns 452.50000000000006
+//	4.525 * math.Pow10(2) returns 452.50000000000006
 func multByPow10(x float64, n int) float64 {
 	if n == 0 || math.IsNaN(x) || math.IsInf(x, 0) {
 		return x

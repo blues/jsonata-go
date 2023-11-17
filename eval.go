@@ -9,10 +9,13 @@ import (
 	"math"
 	"reflect"
 	"sort"
+	"sync"
 
-	"github.com/blues/jsonata-go/jlib"
-	"github.com/blues/jsonata-go/jparse"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/shopspring/decimal"
+	"github.com/xiatechs/jsonata-go/config"
+	"github.com/xiatechs/jsonata-go/jlib"
+	"github.com/xiatechs/jsonata-go/jparse"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 var undefined reflect.Value
@@ -202,9 +205,6 @@ func evalPath(node *jparse.PathNode, data reflect.Value, env *environment) (refl
 			return undefined, err
 		}
 
-		if jtypes.IsArray(output) && jtypes.Resolve(output).Len() == 0 {
-			return undefined, nil
-		}
 	}
 
 	if node.KeepArrays {
@@ -312,7 +312,7 @@ func evalNegation(node *jparse.NegationNode, data reflect.Value, env *environmen
 
 	n, ok := jtypes.AsNumber(rhs)
 	if !ok {
-		return undefined, newEvalError(ErrNonNumberRHS, node.RHS, "-")
+		return undefined, newEvalError(ErrNonNumberRHS, node.RHS, "-", node.Pos())
 	}
 
 	return reflect.ValueOf(-n), nil
@@ -353,11 +353,11 @@ func evalRange(node *jparse.RangeNode, data reflect.Value, env *environment) (re
 
 	// If either side is not an integer, return an error.
 	if lhsOK && !lhsInteger {
-		return undefined, newEvalError(ErrNonIntegerLHS, node.LHS, "..")
+		return undefined, newEvalError(ErrNonIntegerLHS, node.LHS, "..", 0)
 	}
 
 	if rhsOK && !rhsInteger {
-		return undefined, newEvalError(ErrNonIntegerRHS, node.RHS, "..")
+		return undefined, newEvalError(ErrNonIntegerRHS, node.RHS, "..", 0)
 	}
 
 	// If either side is undefined or the left side is greater
@@ -370,7 +370,7 @@ func evalRange(node *jparse.RangeNode, data reflect.Value, env *environment) (re
 	// Check for integer overflow or an array size that exceeds
 	// our upper bound.
 	if size < 0 || size > maxRangeItems {
-		return undefined, newEvalError(ErrMaxRangeItems, "..", nil)
+		return undefined, newEvalError(ErrMaxRangeItems, "..", nil, 0)
 	}
 
 	results := reflect.MakeSlice(typeInterfaceSlice, size, size)
@@ -475,7 +475,7 @@ func groupItemsByKey(obj *jparse.ObjectNode, items reflect.Value, env *environme
 
 			key := s.Value
 			if _, ok := results[key]; ok {
-				return nil, newEvalError(ErrDuplicateKey, keyNode, key)
+				return nil, newEvalError(ErrDuplicateKey, keyNode, key, 0)
 			}
 
 			results[key] = keyIndexes{
@@ -493,7 +493,7 @@ func groupItemsByKey(obj *jparse.ObjectNode, items reflect.Value, env *environme
 
 			key, ok := jtypes.AsString(v)
 			if !ok {
-				return nil, newEvalError(ErrIllegalKey, keyNode, nil)
+				return nil, newEvalError(ErrIllegalKey, keyNode, nil, 0)
 			}
 
 			idx, ok := results[key]
@@ -506,7 +506,7 @@ func groupItemsByKey(obj *jparse.ObjectNode, items reflect.Value, env *environme
 			}
 
 			if idx.pair != i {
-				return nil, newEvalError(ErrDuplicateKey, keyNode, key)
+				return nil, newEvalError(ErrDuplicateKey, keyNode, key, 0)
 			}
 
 			idx.items = append(idx.items, j)
@@ -715,20 +715,20 @@ func buildSortInfo(items reflect.Value, terms []jparse.SortTerm, env *environmen
 			switch {
 			case jtypes.IsNumber(v):
 				if isStringTerm[j] {
-					return nil, newEvalError(ErrSortMismatch, term.Expr, nil)
+					return nil, newEvalError(ErrSortMismatch, term.Expr, nil, 0)
 				}
 				values[j] = v
 				isNumberTerm[j] = true
 
 			case jtypes.IsString(v):
 				if isNumberTerm[j] {
-					return nil, newEvalError(ErrSortMismatch, term.Expr, nil)
+					return nil, newEvalError(ErrSortMismatch, term.Expr, nil, 0)
 				}
 				values[j] = v
 				isStringTerm[j] = true
 
 			default:
-				return nil, newEvalError(ErrNonSortable, term.Expr, nil)
+				return nil, newEvalError(ErrNonSortable, term.Expr, nil, 0)
 			}
 		}
 
@@ -829,6 +829,7 @@ func evalTypedLambda(node *jparse.TypedLambdaNode, data reflect.Value, env *envi
 func evalObjectTransformation(node *jparse.ObjectTransformationNode, data reflect.Value, env *environment) (reflect.Value, error) {
 	f := &transformationCallable{
 		callableName: callableName{
+			sync.Mutex{},
 			"transform",
 		},
 		pattern: node.Pattern,
@@ -848,7 +849,7 @@ func evalPartial(node *jparse.PartialNode, data reflect.Value, env *environment)
 
 	fn, ok := jtypes.AsCallable(v)
 	if !ok {
-		return undefined, newEvalError(ErrNonCallablePartial, node.Func, nil)
+		return undefined, newEvalError(ErrNonCallablePartial, node.Func, nil, 0)
 	}
 
 	f := &partialCallable{
@@ -880,7 +881,7 @@ func evalFunctionCall(node *jparse.FunctionCallNode, data reflect.Value, env *en
 
 	fn, ok := jtypes.AsCallable(v)
 	if !ok {
-		return undefined, newEvalError(ErrNonCallable, node.Func, nil)
+		return undefined, newEvalError(ErrNonCallable, node.Func, reflect.ValueOf(data), node.Func.Pos())
 	}
 
 	if setter, ok := fn.(nameSetter); ok {
@@ -903,8 +904,30 @@ func evalFunctionCall(node *jparse.FunctionCallNode, data reflect.Value, env *en
 
 		argv[i] = v
 	}
+	res, err := fn.Call(argv)
+	if err != nil {
+		return res, updateError(err, node, transformArgsToString(argv))
+	}
+	return res, nil
+}
 
-	return fn.Call(argv)
+func updateError(err error, node *jparse.FunctionCallNode, stringArgs string) error {
+	newErr, ok := err.(*ArgTypeError)
+	if ok {
+		newErr.Pos = node.Func.Pos()
+		newErr.Arguments = stringArgs
+		return newErr
+	}
+
+	return fmt.Errorf("%v, position: %v, arguments: %v", err, node.Func.Pos(), stringArgs)
+}
+
+func transformArgsToString(argv []reflect.Value) string {
+	argvString := ""
+	for i, value := range argv {
+		argvString += fmt.Sprintf("number:%v value:%v ", i, value.Interface())
+	}
+	return argvString
 }
 
 func evalFunctionApplication(node *jparse.FunctionApplicationNode, data reflect.Value, env *environment) (reflect.Value, error) {
@@ -931,7 +954,7 @@ func evalFunctionApplication(node *jparse.FunctionApplicationNode, data reflect.
 	// Check that the right hand side is callable.
 	f2, ok := jtypes.AsCallable(rhs)
 	if !ok {
-		return undefined, newEvalError(ErrNonCallableApply, node.RHS, "~>")
+		return undefined, newEvalError(ErrNonCallableApply, node.RHS, "~>", 0)
 	}
 
 	// If the left hand side is not callable, call the right
@@ -977,12 +1000,13 @@ func evalNumericOperator(node *jparse.NumericOperatorNode, data reflect.Value, e
 	}
 
 	// Return an error if either side is not a number.
+
 	if lhsOK && !lhsNumber {
-		return undefined, newEvalError(ErrNonNumberLHS, node.LHS, node.Type)
+		return undefined, newEvalError(ErrNonNumberLHS, node.LHS, node.Type, node.Pos())
 	}
 
 	if rhsOK && !rhsNumber {
-		return undefined, newEvalError(ErrNonNumberRHS, node.RHS, node.Type)
+		return undefined, newEvalError(ErrNonNumberRHS, node.RHS, node.Type, 0)
 	}
 
 	// Return undefined if either side is undefined.
@@ -990,29 +1014,34 @@ func evalNumericOperator(node *jparse.NumericOperatorNode, data reflect.Value, e
 		return undefined, nil
 	}
 
+	lhsDecimal, rhsDecimal := decimal.NewFromFloat(lhs), decimal.NewFromFloat(rhs)
+
 	var x float64
 
 	switch node.Type {
 	case jparse.NumericAdd:
-		x = lhs + rhs
+		x = lhsDecimal.Add(rhsDecimal).RoundCeil(config.GetDivisionPrecision()).InexactFloat64()
 	case jparse.NumericSubtract:
-		x = lhs - rhs
+		x = lhsDecimal.Sub(rhsDecimal).RoundCeil(config.GetDivisionPrecision()).InexactFloat64()
 	case jparse.NumericMultiply:
-		x = lhs * rhs
+		x = lhsDecimal.Mul(rhsDecimal).Truncate(config.GetDivisionPrecision()).InexactFloat64()
 	case jparse.NumericDivide:
 		x = lhs / rhs
+		if !math.IsInf(x, 0) && !math.IsNaN(x) {
+			x = lhsDecimal.Div(rhsDecimal).RoundCeil(config.GetDivisionPrecision()).InexactFloat64()
+		}
 	case jparse.NumericModulo:
-		x = math.Mod(lhs, rhs)
+		x = lhsDecimal.Mod(rhsDecimal).Truncate(config.GetDivisionPrecision()).InexactFloat64()
 	default:
 		panicf("unrecognised numeric operator %q", node.Type)
 	}
 
 	if math.IsInf(x, 0) {
-		return undefined, newEvalError(ErrNumberInf, nil, node.Type)
+		return undefined, newEvalError(ErrNumberInf, nil, node.Type, 0)
 	}
 
 	if math.IsNaN(x) {
-		return undefined, newEvalError(ErrNumberNaN, nil, node.Type)
+		return undefined, newEvalError(ErrNumberNaN, nil, node.Type, 0)
 	}
 
 	return reflect.ValueOf(x), nil
@@ -1047,16 +1076,16 @@ func evalComparisonOperator(node *jparse.ComparisonOperatorNode, data reflect.Va
 	// left side type does not equal right side type.
 	if needComparableTypes(node.Type) {
 		if lhs != undefined && !lhsNumber && !lhsString {
-			return undefined, newEvalError(ErrNonComparableLHS, node.LHS, node.Type)
+			return undefined, newEvalError(ErrNonComparableLHS, node.LHS, node.Type, 0)
 		}
 
 		if rhs != undefined && !rhsNumber && !rhsString {
-			return undefined, newEvalError(ErrNonComparableRHS, node.RHS, node.Type)
+			return undefined, newEvalError(ErrNonComparableRHS, node.RHS, node.Type, 0)
 		}
 
 		if lhs != undefined && rhs != undefined &&
 			(lhsNumber != rhsNumber || lhsString != rhsString) {
-			return undefined, newEvalError(ErrTypeMismatch, nil, node.Type)
+			return undefined, newEvalError(ErrTypeMismatch, nil, node.Type, 0)
 		}
 	}
 

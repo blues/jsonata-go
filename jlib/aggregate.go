@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/shopspring/decimal"
+	"github.com/xiatechs/jsonata-go/config"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 // Sum returns the total of an array of numbers. If the array is
@@ -24,17 +26,17 @@ func Sum(v reflect.Value) (float64, error) {
 
 	v = jtypes.Resolve(v)
 
-	var sum float64
+	var sum decimal.Decimal
 
 	for i := 0; i < v.Len(); i++ {
 		n, ok := jtypes.AsNumber(v.Index(i))
 		if !ok {
 			return 0, fmt.Errorf("cannot call sum on an array with non-number types")
 		}
-		sum += n
+		sum = sum.Add(decimal.NewFromFloat(n))
 	}
 
-	return sum, nil
+	return sum.RoundCeil(config.GetDivisionPrecision()).InexactFloat64(), nil
 }
 
 // Max returns the largest value in an array of numbers. If the
@@ -115,15 +117,15 @@ func Average(v reflect.Value) (float64, error) {
 		return 0, jtypes.ErrUndefined
 	}
 
-	var sum float64
+	var sum decimal.Decimal
 
 	for i := 0; i < v.Len(); i++ {
 		n, ok := jtypes.AsNumber(v.Index(i))
 		if !ok {
 			return 0, fmt.Errorf("cannot call average on an array with non-number types")
 		}
-		sum += n
+		sum = sum.Add(decimal.NewFromFloat(n))
 	}
 
-	return sum / float64(v.Len()), nil
+	return sum.Div(decimal.NewFromInt(int64(v.Len()))).RoundCeil(config.GetDivisionPrecision()).InexactFloat64(), nil
 }

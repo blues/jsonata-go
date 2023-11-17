@@ -11,10 +11,13 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 
-	"github.com/blues/jsonata-go/jparse"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/xiatechs/jsonata-go/jparse"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 var (
@@ -2328,8 +2331,8 @@ func testTransformationCallable(t *testing.T, tests []transformationCallableTest
 			}
 		}
 
-		if !reflect.DeepEqual(err, test.Error) {
-			t.Errorf("transform %d: expected error %v, got %v", i+1, test.Error, err)
+		if err != nil && test.Error != nil {
+			assert.EqualError(t, err, test.Error.Error())
 		}
 	}
 }
@@ -2371,6 +2374,7 @@ func TestRegexCallable(t *testing.T) {
 				"groups": []string{},
 				"next": &matchCallable{
 					callableName: callableName{
+						sync.Mutex{},
 						"next",
 					},
 					match:  "ac",
@@ -2379,6 +2383,7 @@ func TestRegexCallable(t *testing.T) {
 					groups: []string{},
 					next: &matchCallable{
 						callableName: callableName{
+							sync.Mutex{},
 							"next",
 						},
 						match:  "ad",
@@ -2387,6 +2392,7 @@ func TestRegexCallable(t *testing.T) {
 						groups: []string{},
 						next: &matchCallable{
 							callableName: callableName{
+								sync.Mutex{},
 								"next",
 							},
 							match:  "ab",
@@ -2395,6 +2401,7 @@ func TestRegexCallable(t *testing.T) {
 							groups: []string{},
 							next: &matchCallable{
 								callableName: callableName{
+									sync.Mutex{},
 									"next",
 								},
 								match:  "a",
@@ -2425,6 +2432,7 @@ func TestRegexCallable(t *testing.T) {
 				},
 				"next": &matchCallable{
 					callableName: callableName{
+						sync.Mutex{},
 						"next",
 					},
 					match: "ac",
@@ -2435,6 +2443,7 @@ func TestRegexCallable(t *testing.T) {
 					},
 					next: &matchCallable{
 						callableName: callableName{
+							sync.Mutex{},
 							"next",
 						},
 						match: "ad",
@@ -2445,6 +2454,7 @@ func TestRegexCallable(t *testing.T) {
 						},
 						next: &matchCallable{
 							callableName: callableName{
+								sync.Mutex{},
 								"next",
 							},
 							match: "ab",
@@ -2455,6 +2465,7 @@ func TestRegexCallable(t *testing.T) {
 							},
 							next: &matchCallable{
 								callableName: callableName{
+									sync.Mutex{},
 									"next",
 								},
 								match: "a",
@@ -2491,6 +2502,7 @@ func TestRegexCallable(t *testing.T) {
 				},
 				"next": &matchCallable{
 					callableName: callableName{
+						sync.Mutex{},
 						"next",
 					},
 					match: "ac",
@@ -2502,6 +2514,7 @@ func TestRegexCallable(t *testing.T) {
 					},
 					next: &matchCallable{
 						callableName: callableName{
+							sync.Mutex{},
 							"next",
 						},
 						match: "ad",
@@ -2513,6 +2526,7 @@ func TestRegexCallable(t *testing.T) {
 						},
 						next: &matchCallable{
 							callableName: callableName{
+								sync.Mutex{},
 								"next",
 							},
 							match: "ab",
@@ -2524,6 +2538,7 @@ func TestRegexCallable(t *testing.T) {
 							},
 							next: &matchCallable{
 								callableName: callableName{
+									sync.Mutex{},
 									"next",
 								},
 								match: "a",

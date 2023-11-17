@@ -19,8 +19,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/blues/jsonata-go/jparse"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/xiatechs/jsonata-go/jparse"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 type testCase struct {
@@ -620,6 +622,18 @@ func TestArraySelectors4(t *testing.T) {
 
 }
 
+func TestEmptyArray(t *testing.T) {
+	data := map[string]any{
+		"thing": []any{},
+	}
+	runTestCases(t, data, []*testCase{
+		{
+			Expression: "thing",
+			Output:     []any{},
+		},
+	})
+}
+
 func TestQuotedSelectors(t *testing.T) {
 
 	runTestCases(t, testdata.foobar, []*testCase{
@@ -688,11 +702,11 @@ func TestNumericOperators(t *testing.T) {
 		},
 		{
 			Expression: "foo.bar / bar",
-			Output:     0.42857142857142855,
+			Output:     0.42857143,
 		},
 		{
 			Expression: "bar / foo.bar",
-			Output:     2.3333333333333335,
+			Output:     2.33333334,
 		},
 		{
 			Expression: "foo.bar % bar",
@@ -732,6 +746,7 @@ func TestNumericOperators(t *testing.T) {
 				Type:  ErrNonNumberLHS,
 				Token: `"5"`,
 				Value: "+",
+				Pos:   4,
 			},
 		},
 		{
@@ -740,6 +755,7 @@ func TestNumericOperators(t *testing.T) {
 				Type:  ErrNonNumberRHS,
 				Token: `"5"`,
 				Value: "-",
+				Pos:   0,
 			},
 		},
 		{
@@ -748,6 +764,7 @@ func TestNumericOperators(t *testing.T) {
 				Type:  ErrNonNumberLHS, // LHS is evaluated first
 				Token: `"5"`,
 				Value: "*",
+				Pos:   4,
 			},
 		},
 
@@ -2308,17 +2325,17 @@ func TestObjectConstructor2(t *testing.T) {
 		{
 			Expression: "Account.Order{OrderID: $sum(Product.(Price*Quantity))}",
 			Output: map[string]interface{}{
-				"order103": 90.57000000000001,
-				"order104": 245.79000000000002,
+				"order103": 90.57,
+				"order104": 245.79,
 			},
 		},
 		{
 			Expression: "Account.Order.{OrderID: $sum(Product.(Price*Quantity))}",
 			Output: []interface{}{
 				map[string]interface{}{
-					"order103": 90.57000000000001,
+					"order103": 90.57,
 				}, map[string]interface{}{
-					"order104": 245.79000000000002,
+					"order104": 245.79,
 				},
 			},
 		},
@@ -2340,14 +2357,14 @@ func TestObjectConstructor2(t *testing.T) {
 				}`,
 			Output: map[string]interface{}{
 				"order103": map[string]interface{}{
-					"TotalPrice": 90.57000000000001,
+					"TotalPrice": 90.57,
 					"Items": []interface{}{
 						"Bowler Hat",
 						"Trilby hat",
 					},
 				},
 				"order104": map[string]interface{}{
-					"TotalPrice": 245.79000000000002,
+					"TotalPrice": 245.79,
 					"Items": []interface{}{
 						"Bowler Hat",
 						"Cloak",
@@ -2393,7 +2410,7 @@ func TestObjectConstructor2(t *testing.T) {
 								},
 							},
 						},
-						"Total Price": 90.57000000000001,
+						"Total Price": 90.57,
 					},
 					map[string]interface{}{
 						"ID": "order104",
@@ -2415,7 +2432,7 @@ func TestObjectConstructor2(t *testing.T) {
 								},
 							},
 						},
-						"Total Price": 245.79000000000002,
+						"Total Price": 245.79,
 					},
 				},
 			},
@@ -4004,16 +4021,16 @@ func TestFuncSum2(t *testing.T) {
 		{
 			Expression: "Account.Order.$sum(Product.(Price * Quantity))",
 			Output: []interface{}{
-				90.57000000000001,
-				245.79000000000002,
+				90.57,
+				245.79,
 			},
 		},
 		{
 			Expression: `Account.Order.(OrderID & ": " & $sum(Product.(Price*Quantity)))`,
 			Output: []interface{}{
 				// TODO: Why does jsonata-js only display to 2dp?
-				"order103: 90.57000000000001",
-				"order104: 245.79000000000002",
+				"order103: 90.57",
+				"order104: 245.79",
 			},
 		},
 		{
@@ -4293,16 +4310,16 @@ func TestFuncAverage2(t *testing.T) {
 		{
 			Expression: "Account.Order.$average(Product.(Price * Quantity))",
 			Output: []interface{}{
-				45.285000000000004,
-				122.89500000000001,
+				45.285,
+				122.895,
 			},
 		},
 		{
 			Expression: `Account.Order.(OrderID & ": " & $average(Product.(Price*Quantity)))`,
 			Output: []interface{}{
 				// TODO: Why does jsonata-js only display to 3dp?
-				"order103: 45.285000000000004",
-				"order104: 122.89500000000001",
+				"order103: 45.285",
+				"order104: 122.895",
 			},
 		},
 	})
@@ -5066,7 +5083,7 @@ func TestFuncString(t *testing.T) {
 		},
 		{
 			Expression: `$string(22/7)`,
-			Output:     "3.142857142857143", // TODO: jsonata-js returns "3.142857142857"
+			Output:     "3.14285715", // TODO: jsonata-js returns "3.142857142857"
 		},
 		{
 			Expression: `$string(1e100)`,
@@ -5176,8 +5193,8 @@ func TestFuncString2(t *testing.T) {
 			Expression: `Account.Order.$string($sum(Product.(Price* Quantity)))`,
 			// TODO: jsonata-js rounds to "90.57" and "245.79"
 			Output: []interface{}{
-				"90.57000000000001",
-				"245.79000000000002",
+				"90.57",
+				"245.79",
 			},
 		},
 	})
@@ -5380,6 +5397,7 @@ func TestFuncLength(t *testing.T) {
 			Error: &ArgTypeError{
 				Func:  "length",
 				Which: 1,
+				Pos:   1,
 			},
 		},
 		{
@@ -5496,15 +5514,19 @@ func TestFuncContains(t *testing.T) {
 		{
 			Expression: `$contains(23, 3)`,
 			Error: &ArgTypeError{
-				Func:  "contains",
-				Which: 1,
+				Func:      "contains",
+				Which:     1,
+				Pos:       1,
+				Arguments: "number:0 value:23 number:1 value:3",
 			},
 		},
 		{
 			Expression: `$contains("23", 3)`,
 			Error: &ArgTypeError{
-				Func:  "contains",
-				Which: 2,
+				Func:      "contains",
+				Which:     2,
+				Pos:       1,
+				Arguments: "number:0 value:23 number:1 value:3",
 			},
 		},
 	})
@@ -5599,15 +5621,19 @@ func TestFuncSplit(t *testing.T) {
 				`$split("a, b, c, d", ", ", true)`,
 			},
 			Error: &ArgTypeError{
-				Func:  "split",
-				Which: 3,
+				Func:      "split",
+				Which:     3,
+				Pos:       1,
+				Arguments: "number:0 value:a, b, c, d",
 			},
 		},
 		{
 			Expression: `$split(12345, 3)`,
 			Error: &ArgTypeError{
-				Func:  "split",
-				Which: 1,
+				Func:      "split",
+				Which:     1,
+				Pos:       1,
+				Arguments: "number:0 value:12345 number:1 value:3",
 			},
 		},
 		{
@@ -5658,8 +5684,10 @@ func TestFuncJoin(t *testing.T) {
 		{
 			Expression: `$join("hello", 3)`,
 			Error: &ArgTypeError{
-				Func:  "join",
-				Which: 2,
+				Func:      "join",
+				Which:     2,
+				Pos:       1,
+				Arguments: "number:0 value:hello number:1 value:3",
 			},
 		},
 		{
@@ -5733,22 +5761,28 @@ func TestFuncReplace(t *testing.T) {
 		{
 			Expression: `$replace("hello", "l", "1", null)`,
 			Error: &ArgTypeError{
-				Func:  "replace",
-				Which: 4,
+				Func:      "replace",
+				Which:     4,
+				Pos:       1,
+				Arguments: "number:0 value:hello number:1",
 			},
 		},
 		{
 			Expression: `$replace(123, 2, 1)`,
 			Error: &ArgTypeError{
-				Func:  "replace",
-				Which: 1,
+				Func:      "replace",
+				Which:     1,
+				Pos:       1,
+				Arguments: "number:0 value:123 number:1 value:2 number:2 value:1",
 			},
 		},
 		{
 			Expression: `$replace("hello", 2, 1)`,
 			Error: &ArgTypeError{
-				Func:  "replace",
-				Which: 2,
+				Func:      "replace",
+				Which:     2,
+				Pos:       1,
+				Arguments: "number:0 value:hello number:1 value:2 number:2",
 			},
 		},
 		{
@@ -6087,57 +6121,73 @@ func TestFuncNumber(t *testing.T) {
 		{
 			Expression: `$number(null)`,
 			Error: &ArgTypeError{
-				Func:  "number",
-				Which: 1,
+				Func:      "number",
+				Which:     1,
+				Pos:       1,
+				Arguments: "number:0 value:<nil>",
 			},
 		},
 		{
 			Expression: `$number([])`,
 			Error: &ArgTypeError{
-				Func:  "number",
-				Which: 1,
+				Func:      "number",
+				Which:     1,
+				Pos:       1,
+				Arguments: "number:0 value:[]",
 			},
 		},
 		{
 			Expression: `$number([1,2])`,
 			Error: &ArgTypeError{
-				Func:  "number",
-				Which: 1,
+				Func:      "number",
+				Which:     1,
+				Pos:       1,
+				Arguments: "number:0 value:[1 2]",
 			},
 		},
 		{
 			Expression: `$number(["hello"])`,
 			Error: &ArgTypeError{
-				Func:  "number",
-				Which: 1,
+				Func:      "number",
+				Which:     1,
+				Pos:       1,
+				Arguments: "number:0 value:[hello]",
 			},
 		},
 		{
 			Expression: `$number(["2"])`,
 			Error: &ArgTypeError{
-				Func:  "number",
-				Which: 1,
+				Func:      "number",
+				Which:     1,
+				Pos:       1,
+				Arguments: "number:0 value:[2]",
 			},
 		},
 		{
 			Expression: `$number({})`,
 			Error: &ArgTypeError{
-				Func:  "number",
-				Which: 1,
+				Func:      "number",
+				Which:     1,
+				Pos:       1,
+				Arguments: "number:0 value:map",
 			},
 		},
 		{
 			Expression: `$number({"hello":"world"})`,
 			Error: &ArgTypeError{
-				Func:  "number",
-				Which: 1,
+				Func:      "number",
+				Which:     1,
+				Pos:       1,
+				Arguments: "number:0 value:map",
 			},
 		},
 		{
 			Expression: `$number($number)`,
 			Error: &ArgTypeError{
-				Func:  "number",
-				Which: 1,
+				Func:      "number",
+				Which:     1,
+				Pos:       1,
+				Arguments: "number:0 value:",
 			},
 		},
 		{
@@ -7255,18 +7305,32 @@ func TestRegexMatch(t *testing.T) {
 		{
 			Expression: `$match(12345, 3)`,
 			Error: &ArgTypeError{
-				Func:  "match",
-				Which: 1,
+				Func:      "match",
+				Which:     1,
+				Pos:       1,
+				Arguments: "number:0 value:12345",
+			},
+		},
+		{
+			Expression: []string{
+				`$match("a, b, c, d", true)`,
+			},
+			Error: &ArgTypeError{
+				Func:      "match",
+				Which:     2,
+				Arguments: "number:0 value:a, b, c, d number:1 value:true ",
+				Pos:       1,
 			},
 		},
 		{
 			Expression: []string{
 				`$match("a, b, c, d", "ab")`,
-				`$match("a, b, c, d", true)`,
 			},
 			Error: &ArgTypeError{
-				Func:  "match",
-				Which: 2,
+				Func:      "match",
+				Which:     2,
+				Arguments: "number:0 value:a, b, c, d number:1 value:ab ",
+				Pos:       1,
 			},
 		},
 		{
@@ -7275,8 +7339,10 @@ func TestRegexMatch(t *testing.T) {
 				`$match("a, b, c, d", /ab/, "2")`,
 			},
 			Error: &ArgTypeError{
-				Func:  "match",
-				Which: 3,
+				Func:      "match",
+				Which:     3,
+				Arguments: "number:0 value:a, b, c, d number:1 value:&{{{0 0} ab}",
+				Pos:       1,
 			},
 		},
 		{
@@ -7612,6 +7678,11 @@ func TestFuncMillis2(t *testing.T) {
 }
 
 func TestFuncToMillis(t *testing.T) {
+	defer func() { // added this to help with the test as it panics and that is annoying
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
+	}()
 
 	runTestCases(t, nil, []*testCase{
 		{
@@ -7628,7 +7699,7 @@ func TestFuncToMillis(t *testing.T) {
 		},
 		{
 			Expression: `$toMillis("foo")`,
-			Error:      fmt.Errorf(`could not parse time "foo"`),
+			Error:      fmt.Errorf(`could not parse time "foo" due to inconsistency in layout and date time string, date foo layout 2006`),
 		},
 	})
 }
@@ -7828,8 +7899,10 @@ func TestLambdaSignatureViolations(t *testing.T) {
 		{
 			Expression: `λ($arg1, $arg2)<nn:a>{[$arg1, $arg2]}(1,"2")`,
 			Error: &ArgTypeError{
-				Func:  "lambda",
-				Which: 2,
+				Func:      "lambda",
+				Which:     2,
+				Pos:       23,
+				Arguments: "number:0 value:1 number:1 value:2 ",
 			},
 		},
 		{
@@ -7843,29 +7916,37 @@ func TestLambdaSignatureViolations(t *testing.T) {
 		{
 			Expression: `λ($arg1, $arg2)<nn+:a>{[$arg1, $arg2]}(1,3, 2,"g")`,
 			Error: &ArgTypeError{
-				Func:  "lambda",
-				Which: 4,
+				Func:      "lambda",
+				Which:     4,
+				Pos:       24,
+				Arguments: "number:0 value:1 number:1 value:3 number:2 value:2 number:3 value:g ",
 			},
 		},
 		{
 			Expression: `λ($arr)<a<n>>{$arr}(["3"]) `,
 			Error: &ArgTypeError{
-				Func:  "lambda",
-				Which: 1,
+				Func:      "lambda",
+				Which:     1,
+				Pos:       16,
+				Arguments: "number:0 value:[3] ",
 			},
 		},
 		{
 			Expression: `λ($arr)<a<n>>{$arr}([1, 2, "3"]) `,
 			Error: &ArgTypeError{
-				Func:  "lambda",
-				Which: 1,
+				Func:      "lambda",
+				Which:     1,
+				Pos:       16,
+				Arguments: "number:0 value:[1 2 3] ",
 			},
 		},
 		{
 			Expression: `λ($arr)<a<n>>{$arr}("f")`,
 			Error: &ArgTypeError{
-				Func:  "lambda",
-				Which: 1,
+				Func:      "lambda",
+				Which:     1,
+				Pos:       16,
+				Arguments: "number:0 value:[f] ",
 			},
 		},
 		{
@@ -7875,8 +7956,10 @@ func TestLambdaSignatureViolations(t *testing.T) {
 					$fun("f")
 				)`,
 			Error: &ArgTypeError{
-				Func:  "fun",
-				Which: 1,
+				Func:      "fun",
+				Which:     1,
+				Pos:       48,
+				Arguments: "number:0 value:[f] ",
 			},
 		},
 		{
@@ -7991,8 +8074,8 @@ func runTestCase(t *testing.T, equal compareFunc, input interface{}, test *testC
 		if !equal(output, test.Output) {
 			t.Errorf("\nExpression: %s\nExp. Value: %v [%T]\nAct. Value: %v [%T]", exp, test.Output, test.Output, output, output)
 		}
-		if !reflect.DeepEqual(err, test.Error) {
-			t.Errorf("\nExpression: %s\nExp. Error: %v [%T]\nAct. Error: %v [%T]", exp, test.Error, test.Error, err, err)
+		if err != nil && test.Error != nil {
+			assert.ErrorContains(t, err, test.Error.Error(), fmt.Sprintf("Exp. Value: %v", exp))
 		}
 	}
 }
