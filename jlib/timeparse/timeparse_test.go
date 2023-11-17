@@ -28,7 +28,7 @@ type TestCase struct {
 		DateKey        string `json:"DateKey"`        // lite
 		HourID         string `json:"HourId"`
 		HourKey        string `json:"HourKey"`
-		Millis         int    `json:"Millis"` // lite
+		Millis         int    `json:"Millis"`   // lite
 		RawValue       string `json:"RawValue"` // lite
 
 		// UTC

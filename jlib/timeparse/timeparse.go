@@ -20,7 +20,7 @@ type DateDim struct {
 	DateKey        string `json:"DateKey"`        // lite
 	HourID         string `json:"HourId"`
 	HourKey        string `json:"HourKey"`
-	Millis         int    `json:"Millis"` // lite
+	Millis         int    `json:"Millis"`   // lite
 	RawValue       string `json:"RawValue"` // lite
 
 	// UTC
@@ -93,7 +93,7 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 	localTimeStamp := localTime.Format("2006-01-02T15:04:05.000Z-07:00") // 2006-01-02T15:04:05.000 Z07:00
 	// construct the date dimension structure
 	dateDim := &DateDim{
-		RawValue: inputSrcTs,
+		RawValue:       inputSrcTs,
 		TimeZoneOffset: getOffsetString(localTimeStamp),
 		YearWeek:       mondayWeek,
 		YearDay:        yearDay,

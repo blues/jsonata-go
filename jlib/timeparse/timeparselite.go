@@ -39,6 +39,7 @@ func TimeDateDimensionsLite(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz s
 	localTimeStamp := localTime.Format("2006-01-02T15:04:05.000Z-07:00")
 	// construct the date dimension structure
 	dateDim := &DateDim{
+		RawValue:       inputSrcTs,
 		TimeZoneOffset: getOffsetString(localTimeStamp),
 		Millis:         int(localTime.UnixMilli()),
 		DateLocal:      localTime.Format("2006-01-02"),
