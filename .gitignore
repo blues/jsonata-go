@@ -15,3 +15,7 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# specific files
+jlib/timeparse/outputdata.json
+jlib/timeparse/outputdata_lite.json
