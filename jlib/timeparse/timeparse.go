@@ -116,15 +116,6 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 	return dateDim, nil
 }
 
-func parseDateTimeLocation(d string, layout string, location *time.Location) (time.Time, error) {
-	date, err := time.Parse(layout, d)
-	if err != nil {
-		return date, err
-	}
-
-	return date.In(location), nil
-}
-
 func getOffsetString(input string) string {
 	znegArr := strings.Split(input, "Z-")
 	if len(znegArr) == 2 {
