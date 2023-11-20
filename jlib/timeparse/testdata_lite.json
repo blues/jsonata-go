@@ -8,22 +8,15 @@
    "DateDim": {
     "TimeZone": "UTC",
     "TimeZoneOffset": "+00:00",
-    "YearMonth": 0,
-    "YearWeek": 0,
-    "YearIsoWeek": 0,
-    "YearDay": 0,
     "DateId": "Dates_20230806",
-    "DateKey": "20230806",
-    "HourId": "",
-    "HourKey": "",
+    "DateKey": 20230806,
+    "DateTimeKey": 20230806002341000,
     "Millis": 1691281421000,
     "RawValue": "2023-08-06T00:23:41Z",
     "UTC": "2023-08-06T00:23:41.000Z",
     "DateUTC": "2023-08-06",
-    "HourUTC": 0,
     "Local": "2023-08-06T00:23:41.000+00:00",
-    "DateLocal": "2023-08-06",
-    "HourLocal": 0
+    "DateLocal": "2023-08-06"
    }
   },
   {
@@ -35,22 +28,15 @@
    "DateDim": {
     "TimeZone": "Europe/London",
     "TimeZoneOffset": "+00:00",
-    "YearMonth": 0,
-    "YearWeek": 0,
-    "YearIsoWeek": 0,
-    "YearDay": 0,
     "DateId": "Dates_20230806",
-    "DateKey": "20230806",
-    "HourId": "",
-    "HourKey": "",
+    "DateKey": 20230806,
+    "DateTimeKey": 20230806012341000,
     "Millis": 1691281421454,
     "RawValue": "2023-08-06T00:23:41.454Z",
     "UTC": "2023-08-06T00:23:41.454Z",
     "DateUTC": "2023-08-06",
-    "HourUTC": 0,
     "Local": "2023-08-06T01:23:41.454+01:00",
-    "DateLocal": "2023-08-06",
-    "HourLocal": 0
+    "DateLocal": "2023-08-06"
    }
   },
   {
@@ -62,22 +48,15 @@
    "DateDim": {
     "TimeZone": "Europe/London",
     "TimeZoneOffset": "+00:00",
-    "YearMonth": 0,
-    "YearWeek": 0,
-    "YearIsoWeek": 0,
-    "YearDay": 0,
     "DateId": "Dates_20230806",
-    "DateKey": "20230806",
-    "HourId": "",
-    "HourKey": "",
+    "DateKey": 20230806,
+    "DateTimeKey": 20230806002341000,
     "Millis": 1691277821454,
     "RawValue": "2023-08-06T00:23:41.454+01:00",
     "UTC": "2023-08-05T23:23:41.454Z",
     "DateUTC": "2023-08-05",
-    "HourUTC": 0,
     "Local": "2023-08-06T00:23:41.454+01:00",
-    "DateLocal": "2023-08-06",
-    "HourLocal": 0
+    "DateLocal": "2023-08-06"
    }
   },
   {
@@ -89,22 +68,15 @@
    "DateDim": {
     "TimeZone": "Europe/London",
     "TimeZoneOffset": "+00:00",
-    "YearMonth": 0,
-    "YearWeek": 0,
-    "YearIsoWeek": 0,
-    "YearDay": 0,
     "DateId": "Dates_20230806",
-    "DateKey": "20230806",
-    "HourId": "",
-    "HourKey": "",
+    "DateKey": 20230806,
+    "DateTimeKey": 20230806002341000,
     "Millis": 1691277821454,
     "RawValue": "2023-08-06T00:23:41.454Z",
     "UTC": "2023-08-05T23:23:41.454Z",
     "DateUTC": "2023-08-05",
-    "HourUTC": 0,
     "Local": "2023-08-06T00:23:41.454+01:00",
-    "DateLocal": "2023-08-06",
-    "HourLocal": 0
+    "DateLocal": "2023-08-06"
    }
   },
   {
@@ -116,22 +88,15 @@
    "DateDim": {
     "TimeZone": "America/New_York",
     "TimeZoneOffset": "+00:00",
-    "YearMonth": 0,
-    "YearWeek": 0,
-    "YearIsoWeek": 0,
-    "YearDay": 0,
     "DateId": "Dates_20230805",
-    "DateKey": "20230805",
-    "HourId": "",
-    "HourKey": "",
+    "DateKey": 20230805,
+    "DateTimeKey": 20230805192341000,
     "Millis": 1691277821454,
     "RawValue": "2023-08-06T00:23:41.454Z",
     "UTC": "2023-08-05T23:23:41.454Z",
     "DateUTC": "2023-08-05",
-    "HourUTC": 0,
     "Local": "2023-08-05T19:23:41.454-04:00",
-    "DateLocal": "2023-08-05",
-    "HourLocal": 0
+    "DateLocal": "2023-08-05"
    }
   },
   {
@@ -143,22 +108,15 @@
    "DateDim": {
     "TimeZone": "Europe/London",
     "TimeZoneOffset": "+00:00",
-    "YearMonth": 0,
-    "YearWeek": 0,
-    "YearIsoWeek": 0,
-    "YearDay": 0,
     "DateId": "Dates_20230806",
-    "DateKey": "20230806",
-    "HourId": "",
-    "HourKey": "",
+    "DateKey": 20230806,
+    "DateTimeKey": 20230806002341000,
     "Millis": 1691277821454,
     "RawValue": "2023-08-06T00:23:41.454",
     "UTC": "2023-08-05T23:23:41.454Z",
     "DateUTC": "2023-08-05",
-    "HourUTC": 0,
     "Local": "2023-08-06T00:23:41.454+01:00",
-    "DateLocal": "2023-08-06",
-    "HourLocal": 0
+    "DateLocal": "2023-08-06"
    }
   },
   {
@@ -170,22 +128,15 @@
    "DateDim": {
     "TimeZone": "Europe/London",
     "TimeZoneOffset": "+00:00",
-    "YearMonth": 0,
-    "YearWeek": 0,
-    "YearIsoWeek": 0,
-    "YearDay": 0,
     "DateId": "Dates_20230106",
-    "DateKey": "20230106",
-    "HourId": "",
-    "HourKey": "",
+    "DateKey": 20230106,
+    "DateTimeKey": 20230106002341000,
     "Millis": 1672964621454,
     "RawValue": "2023-01-06T00:23:41.454",
     "UTC": "2023-01-06T00:23:41.454Z",
     "DateUTC": "2023-01-06",
-    "HourUTC": 0,
     "Local": "2023-01-06T00:23:41.454+00:00",
-    "DateLocal": "2023-01-06",
-    "HourLocal": 0
+    "DateLocal": "2023-01-06"
    }
   }
  ]

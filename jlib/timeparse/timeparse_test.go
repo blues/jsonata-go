@@ -16,31 +16,7 @@ type TestCase struct {
 	InputSrcFormat string `json:"input_srcFormat"`
 	InputSrcTz     string `json:"input_srcTz"`
 	OutputSrcTz    string `json:"output_srcTz"`
-	DateDim        struct {
-		// Other
-		TimeZone       string `json:"TimeZone"`       // lite
-		TimeZoneOffset string `json:"TimeZoneOffset"` // lite
-		YearMonth      int    `json:"YearMonth"`      // int
-		YearWeek       int    `json:"YearWeek"`       // int
-		YearIsoWeek    int    `json:"YearIsoWeek"`    // int
-		YearDay        int    `json:"YearDay"`        // int
-		DateID         string `json:"DateId"`         // lite
-		DateKey        string `json:"DateKey"`        // lite
-		HourID         string `json:"HourId"`
-		HourKey        string `json:"HourKey"`
-		Millis         int    `json:"Millis"`   // lite
-		RawValue       string `json:"RawValue"` // lite
-
-		// UTC
-		UTC     string `json:"UTC"`     // lite
-		DateUTC string `json:"DateUTC"` // lite
-		HourUTC int    `json:"HourUTC"`
-
-		// Local
-		Local     string `json:"Local"`     // lite
-		DateLocal string `json:"DateLocal"` // lite
-		HourLocal int    `json:"HourLocal"`
-	} `json:"DateDim"`
+	DateDim        jsonatatime.DateDim `json:"DateDim"`
 }
 
 func TestTime(t *testing.T) {
@@ -85,8 +61,17 @@ func TestTime(t *testing.T) {
 	_ = os.WriteFile("outputdata.json", outputbytes, os.ModePerm)
 }
 
+type TestCaseLite struct {
+	TestDesc       string `json:"testDesc"`
+	InputSrcTs     string `json:"input_srcTs"`
+	InputSrcFormat string `json:"input_srcFormat"`
+	InputSrcTz     string `json:"input_srcTz"`
+	OutputSrcTz    string `json:"output_srcTz"`
+	DateDim        jsonatatime.DateDimLite `json:"DateDim"`
+}
+
 func TestTimeLite(t *testing.T) {
-	tests := []TestCase{}
+	tests := []TestCaseLite{}
 	fileBytes, err := os.ReadFile("testdata_lite.json")
 	require.NoError(t, err)
 	err = json.Unmarshal(fileBytes, &tests)
@@ -106,12 +91,12 @@ func TestTimeLite(t *testing.T) {
 			expectedByts, err := json.Marshal(tc.DateDim)
 			require.NoError(t, err)
 
-			expectedDateDim := jsonatatime.DateDim{}
+			expectedDateDim := jsonatatime.DateDimLite{}
 
 			actualByts, err := json.Marshal(result)
 			require.NoError(t, err)
 
-			actualDateDim := jsonatatime.DateDim{}
+			actualDateDim := jsonatatime.DateDimLite{}
 
 			err = json.Unmarshal(actualByts, &actualDateDim)
 			require.NoError(t, err)
