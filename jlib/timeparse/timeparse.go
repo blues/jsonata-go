@@ -17,9 +17,10 @@ type DateDim struct {
 	YearIsoWeek    int    `json:"YearIsoWeek"`    // int
 	YearDay        int    `json:"YearDay"`        // int
 	DateID         string `json:"DateId"`         // lite
-	DateKey        string `json:"DateKey"`        // lite
+	DateKey        int    `json:"DateKey"`        // lite
+	DateTimeKey    int    `json:"DateTimeKey"`    // lite
 	HourID         string `json:"HourId"`
-	HourKey        string `json:"HourKey"`
+	HourKey        int    `json:"HourKey"`
 	Millis         int    `json:"Millis"`   // lite
 	RawValue       string `json:"RawValue"` // lite
 
@@ -90,6 +91,23 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		return nil, err
 	}
 
+	dateKeyInt, err := strconv.Atoi(dateID)
+	if err != nil {
+		return nil, err
+	}
+
+	dateTimeID := localTime.Format("20060102150405000")
+
+	dateTimeKeyInt, err := strconv.Atoi(dateTimeID)
+	if err != nil {
+		return nil, err
+	}
+
+	hourKeyInt, err := strconv.Atoi(hourKeyStr)
+	if err != nil {
+		return nil, err
+	}
+
 	localTimeStamp := localTime.Format("2006-01-02T15:04:05.000-07:00")
 	// construct the date dimension structure
 	dateDim := &DateDim{
@@ -101,12 +119,13 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		YearMonth:      yearMonthInt,
 		Millis:         int(localTime.UnixMilli()),
 		HourLocal:      localTime.Hour(),
-		HourKey:        hourKeyStr,
+		HourKey:        hourKeyInt,
 		HourID:         "Hours_" + hourKeyStr,
 		DateLocal:      localTime.Format("2006-01-02"),
 		TimeZone:       localTime.Location().String(),
 		Local:          localTimeStamp,
-		DateKey:        dateID,
+		DateKey:        dateKeyInt,
+		DateTimeKey:    dateTimeKeyInt,
 		DateID:         "Dates_" + dateID,
 		DateUTC:        utcAsYearMonthDay,
 		UTC:            utcTime.Format("2006-01-02T15:04:05.000Z"),

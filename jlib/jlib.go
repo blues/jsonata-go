@@ -88,5 +88,6 @@ func TypeOf(x interface{}) (string, error) {
 	}
 
 	xType := reflect.TypeOf(x).String()
-	return "", fmt.Errorf("unknown type %s", xType)
+	
+	return xType, nil
 }
