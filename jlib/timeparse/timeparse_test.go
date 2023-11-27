@@ -11,11 +11,11 @@ import (
 )
 
 type TestCase struct {
-	TestDesc       string `json:"testDesc"`
-	InputSrcTs     string `json:"input_srcTs"`
-	InputSrcFormat string `json:"input_srcFormat"`
-	InputSrcTz     string `json:"input_srcTz"`
-	OutputSrcTz    string `json:"output_srcTz"`
+	TestDesc       string              `json:"testDesc"`
+	InputSrcTs     string              `json:"input_srcTs"`
+	InputSrcFormat string              `json:"input_srcFormat"`
+	InputSrcTz     string              `json:"input_srcTz"`
+	OutputSrcTz    string              `json:"output_srcTz"`
 	DateDim        jsonatatime.DateDim `json:"DateDim"`
 }
 
@@ -62,11 +62,11 @@ func TestTime(t *testing.T) {
 }
 
 type TestCaseLite struct {
-	TestDesc       string `json:"testDesc"`
-	InputSrcTs     string `json:"input_srcTs"`
-	InputSrcFormat string `json:"input_srcFormat"`
-	InputSrcTz     string `json:"input_srcTz"`
-	OutputSrcTz    string `json:"output_srcTz"`
+	TestDesc       string                  `json:"testDesc"`
+	InputSrcTs     string                  `json:"input_srcTs"`
+	InputSrcFormat string                  `json:"input_srcFormat"`
+	InputSrcTz     string                  `json:"input_srcTz"`
+	OutputSrcTz    string                  `json:"output_srcTz"`
 	DateDim        jsonatatime.DateDimLite `json:"DateDim"`
 }
 

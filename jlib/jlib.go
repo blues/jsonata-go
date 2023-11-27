@@ -88,6 +88,6 @@ func TypeOf(x interface{}) (string, error) {
 	}
 
 	xType := reflect.TypeOf(x).String()
-	
+
 	return xType, nil
 }

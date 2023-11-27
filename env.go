@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/xiatechs/jsonata-go/jlib"
+	"github.com/xiatechs/jsonata-go/jlib/join"
 	"github.com/xiatechs/jsonata-go/jlib/timeparse"
 	"github.com/xiatechs/jsonata-go/jparse"
 	"github.com/xiatechs/jsonata-go/jtypes"
@@ -132,7 +133,7 @@ var baseEnv = initBaseEnv(map[string]Extension{
 	},
 
 	"oneToManyJoin": {
-		Func:               jlib.OneToManyJoin,
+		Func:               join.OneToManyJoin,
 		UndefinedHandler:   defaultUndefinedHandler,
 		EvalContextHandler: nil,
 	},
