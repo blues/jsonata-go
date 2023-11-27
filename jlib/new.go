@@ -306,7 +306,10 @@ func mergeItems(leftItem interface{}, rightItems []interface{}, rightArrayName s
 	return mergedItem
 }
 
-func OneToManyJoin(leftArr, rightArr interface{}, leftKey, rightKey, rightArrayName string) (interface{}, error) {
+// OneToManyJoin performs a join operation between two slices of maps/structs based on specified keys.
+// It supports different types of joins: left, right, inner, and full.
+func OneToManyJoin(leftArr, rightArr interface{}, leftKey, rightKey, rightArrayName, joinType string) (interface{}, error) {
+	// Convert input to slices of interfaces
 	trueLeftArr, ok := leftArr.([]interface{})
 	if !ok {
 		return nil, errors.New("left input must be an array of Objects")
@@ -317,44 +320,78 @@ func OneToManyJoin(leftArr, rightArr interface{}, leftKey, rightKey, rightArrayN
 		return nil, errors.New("right input must be an array of Objects")
 	}
 
+	// Maps for tracking processed items
+	alreadyProcessed := make(map[string]bool)
+	rightProcessed := make(map[string]bool)
+
 	// Create a map for faster lookup of rightArr elements based on the key
 	rightMap := make(map[string][]interface{})
 	for _, item := range trueRightArr {
-		var val interface{}
-		// Check if leftItem is a map or a struct and get the key value accordingly
 		itemMap, ok := item.(map[string]interface{})
 		if ok {
-			itemKey, ok := itemMap[rightKey]
-			if ok {
-				val = itemKey
+			if itemKey, ok := itemMap[rightKey]; ok {
+				strVal := fmt.Sprintf("%v", itemKey)
+				rightMap[strVal] = append(rightMap[strVal], item)
 			}
 		}
-		// Convert the key value to a string and associate it with the item in the map
-		strVal := fmt.Sprintf("%v", val)
-		rightMap[strVal] = append(rightMap[strVal], item)
 	}
 
-	// Create a slice to store the merged results
+	// Slice to store the merged results
 	var result []map[string]interface{}
+	leftMatched := make(map[string]interface{})
 
 	// Iterate through the left array and perform the join
 	for _, leftItem := range trueLeftArr {
-		var leftVal interface{}
-		// Check if leftItem is a map or a struct and get the key value accordingly
 		itemMap, ok := leftItem.(map[string]interface{})
 		if ok {
-			itemKey, ok := itemMap[leftKey]
-			if ok {
-				leftVal = itemKey
+			if itemKey, ok := itemMap[leftKey]; ok {
+				strVal := fmt.Sprintf("%v", itemKey)
+
+				// Determine the right items to join
+				rightItems := rightMap[strVal]
+
+				// Perform the join based on the join type
+				if joinType == "left" || joinType == "full" || (joinType == "inner" && len(rightItems) > 0) {
+					mergedItem := mergeItems(leftItem, rightItems, rightArrayName)
+					result = append(result, mergedItem)
+				}
+
+				// Mark items as processed
+				leftMatched[strVal] = leftItem
+				alreadyProcessed[strVal] = true
 			}
 		}
-		// Convert the key value to a string
-		strVal := fmt.Sprintf("%v", leftVal)
-		rightItems := rightMap[strVal]
+	}
 
-		// Merge the left and right items
-		mergedItem := mergeItems(leftItem, rightItems, rightArrayName)
-		result = append(result, mergedItem)
+	// Add items from the right array for right or full join
+	if joinType == "right" || joinType == "full" {
+		for _, rightItem := range trueRightArr {
+			itemMap, ok := rightItem.(map[string]interface{})
+			if ok {
+				if itemKey, ok := itemMap[rightKey]; ok {
+					strVal := fmt.Sprintf("%v", itemKey)
+
+					// Determine the left item to merge with
+					var leftItemToMerge interface{}
+					if leftMatch, ok := leftMatched[strVal]; ok {
+						leftItemToMerge = leftMatch
+					} else {
+						leftItemToMerge = map[string]interface{}{rightKey: itemKey}
+					}
+
+					// Handle right and full join separately to avoid duplication
+					if joinType == "right" && !rightProcessed[strVal] {
+						mergedItem := mergeItems(leftItemToMerge, rightMap[strVal], rightArrayName)
+						result = append(result, mergedItem)
+						rightProcessed[strVal] = true
+					} else if joinType == "full" && !rightProcessed[strVal] && !alreadyProcessed[strVal] {
+						mergedItem := mergeItems(leftItemToMerge, rightMap[strVal], rightArrayName)
+						result = append(result, mergedItem)
+						rightProcessed[strVal] = true
+					}
+				}
+			}
+		}
 	}
 
 	return result, nil
