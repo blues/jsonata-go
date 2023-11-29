@@ -3,7 +3,6 @@ package timeparse
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -109,10 +108,11 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 	}
 
 	localTimeStamp := localTime.Format("2006-01-02T15:04:05.000-07:00")
+	offsetStr := localTime.Format("-07:00")
 	// construct the date dimension structure
 	dateDim := &DateDim{
 		RawValue:       inputSrcTs,
-		TimeZoneOffset: getOffsetString(localTimeStamp),
+		TimeZoneOffset: offsetStr,
 		YearWeek:       mondayWeek,
 		YearDay:        yearDay,
 		YearIsoWeek:    yearIsoWeekInt,
@@ -133,20 +133,6 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 	}
 
 	return dateDim, nil
-}
-
-func getOffsetString(input string) string {
-	znegArr := strings.Split(input, "Z-")
-	if len(znegArr) == 2 {
-		return "-" + znegArr[1]
-	}
-
-	zposArr := strings.Split(input, "Z+")
-	if len(zposArr) == 2 {
-		return "+" + zposArr[1]
-	}
-
-	return "+00:00"
 }
 
 func getWeekOfYearString(date time.Time) (int, error) {

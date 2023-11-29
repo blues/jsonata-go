@@ -35,7 +35,7 @@
    "output_srcTz": "Europe/London",
    "DateDim": {
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+00:00",
+    "TimeZoneOffset": "+01:00",
     "YearMonth": 202308,
     "YearWeek": 202330,
     "YearIsoWeek": 202331,
@@ -63,7 +63,7 @@
    "output_srcTz": "Europe/London",
    "DateDim": {
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+00:00",
+    "TimeZoneOffset": "+01:00",
     "YearMonth": 202308,
     "YearWeek": 202330,
     "YearIsoWeek": 202331,
@@ -91,7 +91,7 @@
    "output_srcTz": "Europe/London",
    "DateDim": {
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+00:00",
+    "TimeZoneOffset": "+01:00",
     "YearMonth": 202308,
     "YearWeek": 202330,
     "YearIsoWeek": 202331,
@@ -119,7 +119,7 @@
    "output_srcTz": "America/New_York",
    "DateDim": {
     "TimeZone": "America/New_York",
-    "TimeZoneOffset": "+00:00",
+    "TimeZoneOffset": "-04:00",
     "YearMonth": 202308,
     "YearWeek": 202330,
     "YearIsoWeek": 202331,
@@ -147,7 +147,7 @@
    "output_srcTz": "Europe/London",
    "DateDim": {
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+00:00",
+    "TimeZoneOffset": "+01:00",
     "YearMonth": 202308,
     "YearWeek": 202330,
     "YearIsoWeek": 202331,

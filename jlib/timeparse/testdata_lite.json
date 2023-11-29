@@ -27,7 +27,7 @@
    "output_srcTz": "Europe/London",
    "DateDim": {
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+00:00",
+    "TimeZoneOffset": "+01:00",
     "DateId": "Dates_20230806",
     "DateKey": 20230806,
     "DateTimeKey": 20230806012341000,
@@ -47,7 +47,7 @@
    "output_srcTz": "Europe/London",
    "DateDim": {
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+00:00",
+    "TimeZoneOffset": "+01:00",
     "DateId": "Dates_20230806",
     "DateKey": 20230806,
     "DateTimeKey": 20230806002341000,
@@ -67,7 +67,7 @@
    "output_srcTz": "Europe/London",
    "DateDim": {
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+00:00",
+    "TimeZoneOffset": "+01:00",
     "DateId": "Dates_20230806",
     "DateKey": 20230806,
     "DateTimeKey": 20230806002341000,
@@ -87,7 +87,7 @@
    "output_srcTz": "America/New_York",
    "DateDim": {
     "TimeZone": "America/New_York",
-    "TimeZoneOffset": "+00:00",
+    "TimeZoneOffset": "-04:00",
     "DateId": "Dates_20230805",
     "DateKey": 20230805,
     "DateTimeKey": 20230805192341000,
@@ -107,7 +107,7 @@
    "output_srcTz": "Europe/London",
    "DateDim": {
     "TimeZone": "Europe/London",
-    "TimeZoneOffset": "+00:00",
+    "TimeZoneOffset": "+01:00",
     "DateId": "Dates_20230806",
     "DateKey": 20230806,
     "DateTimeKey": 20230806002341000,
