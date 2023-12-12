@@ -277,3 +277,80 @@ func ObjectsToDocument(input interface{}) (interface{}, error) {
 
 	return output, nil // Return the output map
 }
+
+// TransformRule defines a transformation rule with a search substring and a new name.
+type TransformRule struct {
+	SearchSubstring string
+	NewName         string
+}
+
+// RenameKeys applies a series of transformations to the keys in a JSON-compatible data structure.
+// 'data' is the original data where keys need to be transformed.
+// 'rulesInterface' is expected to be a slice of interface{}, where each element is a slice containing two strings:
+// the substring to search for in the keys, and the new name to replace the key with.
+func RenameKeys(data interface{}, rulesInterface interface{}) (interface{}, error) {
+	// Attempt to assert rulesInterface as a slice of interface{}
+	rulesRaw, ok := rulesInterface.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("rules must be a slice of interface{}")
+	}
+
+	// Process each rule, converting it into a TransformRule
+	var rules []TransformRule
+	for _, r := range rulesRaw {
+		rule, ok := r.([]interface{})
+		if !ok || len(rule) != 2 {
+			return nil, fmt.Errorf("each rule must be an array of two strings")
+		}
+
+		searchSubstring, ok1 := rule[0].(string)
+		newName, ok2 := rule[1].(string)
+		if !ok1 || !ok2 {
+			return nil, fmt.Errorf("each rule must be an array of two strings")
+		}
+
+		rules = append(rules, TransformRule{SearchSubstring: searchSubstring, NewName: newName})
+	}
+
+	// Marshal the original data into JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal the JSON into a map for easy manipulation
+	var mapData map[string]interface{}
+	err = json.Unmarshal(jsonData, &mapData)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a new map to store the modified data
+	newData := make(map[string]interface{})
+	for key, value := range mapData {
+		newKey := key // Default to the original key
+		// Apply transformation rules
+		for _, rule := range rules {
+			if strings.Contains(key, rule.SearchSubstring) {
+				newKey = rule.NewName // Update the key if rule matches
+				break
+			}
+		}
+		newData[newKey] = value // Store the value with the new key
+	}
+
+	// Re-marshal to JSON to maintain the same data type as the input
+	resultJSON, err := json.Marshal(newData)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal the JSON back into an interface{} for the return value
+	var result interface{}
+	err = json.Unmarshal(resultJSON, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}

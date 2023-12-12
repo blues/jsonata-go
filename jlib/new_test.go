@@ -75,3 +75,48 @@ func TestSJoin(t *testing.T) {
 		})
 	}
 }
+
+func TestRenameKeys(t *testing.T) {
+	tests := []struct {
+		description    string
+		object1        string
+		object2        string
+		expectedOutput string
+	}{
+		{
+			description: "Rename Keys",
+			object1: `{
+				"itemLineId": "1",
+				"unitPrice": 104.5,
+				"percentageDiscountValue": 5,
+				"discountedLinePrice": 104.5,
+				"name": "LD Wrong Price",
+				"discountAmount": 5.5,
+				"discountType": "AMOUNT",
+				"discountReasonCode": "9901",
+				"discountReasonName": "LD Wrong Price"
+			}`,
+			object2:        `[["ReasonCode","reasonCode"],["ReasonName","reasonName"],["DiscountValue","value"],["Amount","amount"],["Type","type"],["LinePrice","linePrice"]]`,
+			expectedOutput: "{\"amount\":5.5,\"itemLineId\":\"1\",\"linePrice\":104.5,\"name\":\"LD Wrong Price\",\"reasonCode\":\"9901\",\"reasonName\":\"LD Wrong Price\",\"type\":\"AMOUNT\",\"unitPrice\":104.5,\"value\":5}",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.description, func(t *testing.T) {
+			var o1, o2 interface{}
+
+			err := json.Unmarshal([]byte(tt.object1), &o1)
+			assert.NoError(t, err)
+			err = json.Unmarshal([]byte(tt.object2), &o2)
+			assert.NoError(t, err)
+
+			output, err := RenameKeys(o1, o2)
+			assert.NoError(t, err)
+
+			bytes, err := json.Marshal(output)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedOutput, string(bytes))
+		})
+	}
+}
