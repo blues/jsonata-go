@@ -925,7 +925,9 @@ func updateError(err error, node *jparse.FunctionCallNode, stringArgs string) er
 func transformArgsToString(argv []reflect.Value) string {
 	argvString := ""
 	for i, value := range argv {
-		argvString += fmt.Sprintf("number:%v value:%v ", i, value.Interface())
+		if value.IsValid() && value.CanInterface() {
+			argvString += fmt.Sprintf("number:%v value:%v ", i, value.Interface())
+		}
 	}
 	return argvString
 }
