@@ -5,7 +5,7 @@
 package jsonata
 
 import (
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -5099,7 +5099,7 @@ func TestFuncString(t *testing.T) {
 		},
 		{
 			Expression: `$string(1e-7)`,
-			Output:     "1e-7",
+			Output:     "1e-07",
 		},
 		{
 			Expression: `$string(1e+20)`,

@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 
-	"encoding/json"
+	"github.com/goccy/go-json"
 
 	jsonata "github.com/xiatechs/jsonata-go"
 )

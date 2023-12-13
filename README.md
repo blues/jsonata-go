@@ -13,7 +13,7 @@ It currently has feature parity with jsonata-js 1.5.4. As well as a most of the 
 
 ```Go
 import (
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"fmt"
 	"log"
 

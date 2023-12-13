@@ -6,7 +6,7 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"flag"
 	"fmt"
 	"log"
