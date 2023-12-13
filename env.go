@@ -138,6 +138,12 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		EvalContextHandler: nil,
 	},
 
+	"accumulatingSlice": {
+		Func:               jlib.FoldArray,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
 	"renameKeys": {
 		Func:               jlib.RenameKeys,
 		UndefinedHandler:   defaultUndefinedHandler,
