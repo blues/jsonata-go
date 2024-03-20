@@ -5,11 +5,11 @@
 package jsonata_test
 
 import (
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"fmt"
 	"log"
 
-	jsonata "github.com/blues/jsonata-go"
+	jsonata "github.com/xiatechs/jsonata-go"
 )
 
 const jsonString = `

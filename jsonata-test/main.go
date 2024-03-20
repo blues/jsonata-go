@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"flag"
 	"fmt"
 	"io"
@@ -12,8 +12,8 @@ import (
 	"regexp"
 	"strings"
 
-	jsonata "github.com/blues/jsonata-go"
-	types "github.com/blues/jsonata-go/jtypes"
+	jsonata "github.com/xiatechs/jsonata-go"
+	types "github.com/xiatechs/jsonata-go/jtypes"
 )
 
 type testCase struct {
@@ -179,12 +179,13 @@ func runTest(tc testCase, dataDir string, path string) (bool, error) {
 // loadTestExprFile loads a jsonata expression from a file and returns the
 // expression
 // For example, one test looks like this
-// {
-//     "expr-file": "case000.jsonata",
-//     "dataset": null,
-//     "bindings": {},
-//     "result": 2
-// }
+//
+//	{
+//	    "expr-file": "case000.jsonata",
+//	    "dataset": null,
+//	    "bindings": {},
+//	    "result": 2
+//	}
 //
 // We want to load the expression from case000.jsonata so we can use it
 // as an expression in the test case

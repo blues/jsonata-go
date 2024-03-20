@@ -7,7 +7,7 @@ package jlib
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"fmt"
 	"math"
 	"net/url"
@@ -17,8 +17,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/blues/jsonata-go/jlib/jxpath"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/jlib/jxpath"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 // String converts a JSONata value to a string. Values that are
@@ -231,9 +231,9 @@ func Join(values reflect.Value, separator jtypes.OptionalString) (string, error)
 // regular expression in the source string. Each object in the
 // array has the following fields:
 //
-//     match - the substring matched by the regex
-//     index - the starting offset of this match
-//     groups - any captured groups for this match
+//	match - the substring matched by the regex
+//	index - the starting offset of this match
+//	groups - any captured groups for this match
 //
 // The optional third argument specifies the maximum number
 // of matches to return. By default, Match returns all matches.

@@ -7,17 +7,17 @@ It currently has feature parity with jsonata-js 1.5.4. As well as a most of the 
 
 ## Install
 
-    go get github.com/blues/jsonata-go
+    go get github.com/xiatechs/jsonata-go
 
 ## Usage
 
 ```Go
 import (
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"fmt"
 	"log"
 
-	jsonata "github.com/blues/jsonata-go"
+	jsonata "github.com/xiatechs/jsonata-go"
 )
 
 const jsonString = `
@@ -56,7 +56,7 @@ func main() {
 
 ## JSONata Server
 A locally hosted version of [JSONata Exerciser](http://try.jsonata.org/)
-for testing is [available here](https://github.com/blues/jsonata-go/jsonata-server).
+for testing is [available here](https://github.com/xiatechs/jsonata-go/jsonata-server).
 
 ## JSONata tests
 A CLI tool for running jsonata-go against the [JSONata test suite](https://github.com/jsonata-js/jsonata/tree/master/test/test-suite) is [available here](./jsonata-test).

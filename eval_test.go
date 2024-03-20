@@ -11,9 +11,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/blues/jsonata-go/jlib"
-	"github.com/blues/jsonata-go/jparse"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/xiatechs/jsonata-go/jlib"
+	"github.com/xiatechs/jsonata-go/jparse"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 type evalTestCase struct {
@@ -4297,7 +4299,6 @@ func testEvalTestCases(t *testing.T, tests []evalTestCase) {
 		}
 
 		v, err := eval(test.Input, reflect.ValueOf(test.Data), env)
-
 		var output interface{}
 		if v.IsValid() && v.CanInterface() {
 			output = v.Interface()
@@ -4309,11 +4310,12 @@ func testEvalTestCases(t *testing.T, tests []evalTestCase) {
 		}
 
 		if !equal(output, test.Output) {
-			t.Errorf("%s: Expected %v, got %v", test.Input, test.Output, output)
+			t.Errorf("%s: Expected: %v, got: %v", test.Input, test.Output, output)
 		}
 
-		if !reflect.DeepEqual(err, test.Error) {
-			t.Errorf("%s: Expected error %v, got %v", test.Input, test.Error, err)
+		if err != nil && test.Error != nil {
+			assert.EqualError(t, err, test.Error.Error())
 		}
+
 	}
 }

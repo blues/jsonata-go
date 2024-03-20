@@ -11,7 +11,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 func init() {
@@ -57,7 +57,17 @@ func (s StringCallable) toInterface() interface{} {
 // TypeOf implements the jsonata $type function that returns the data type of
 // the argument
 func TypeOf(x interface{}) (string, error) {
+	if fmt.Sprintf("%v", x) == "<nil>" {
+		return "null", nil
+	}
+
 	v := reflect.ValueOf(x)
+
+	switch x.(type) {
+	case *interface{}:
+		return "null", nil
+	}
+
 	if jtypes.IsCallable(v) {
 		return "function", nil
 	}
@@ -77,11 +87,7 @@ func TypeOf(x interface{}) (string, error) {
 		return "object", nil
 	}
 
-	switch x.(type) {
-	case *interface{}:
-		return "null", nil
-	}
-
 	xType := reflect.TypeOf(x).String()
-	return "", fmt.Errorf("unknown type %s", xType)
+
+	return xType, nil
 }

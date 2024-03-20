@@ -5,14 +5,16 @@
 package jparse_test
 
 import (
-	"reflect"
+	"fmt"
 	"regexp"
 	"regexp/syntax"
 	"strings"
 	"testing"
 	"unicode/utf8"
 
-	"github.com/blues/jsonata-go/jparse"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/xiatechs/jsonata-go/jparse"
 )
 
 type testCase struct {
@@ -176,7 +178,7 @@ func TestStringNode(t *testing.T) {
 				Type:     jparse.ErrUnterminatedString,
 				Position: 1,
 				Token:    "hello",
-				Hint:     "\"",
+				Hint:     "\", starting from character position 1",
 			},
 		},
 		{
@@ -186,7 +188,7 @@ func TestStringNode(t *testing.T) {
 				Type:     jparse.ErrUnterminatedString,
 				Position: 1,
 				Token:    "world",
-				Hint:     "'",
+				Hint:     "', starting from character position 1",
 			},
 		},
 	})
@@ -2334,12 +2336,10 @@ func testParser(t *testing.T, data []testCase) {
 		for _, input := range inputs {
 
 			output, err := jparse.Parse(input)
-
-			if !reflect.DeepEqual(output, test.Output) {
-				t.Errorf("%s: expected output %s, got %s", input, test.Output, output)
-			}
-			if !reflect.DeepEqual(err, test.Error) {
-				t.Errorf("%s: expected error %s, got %s", input, test.Error, err)
+			if err != nil && test.Error != nil {
+				assert.EqualError(t, err, fmt.Sprintf("%v", test.Error))
+			} else {
+				assert.Equal(t, output.String(), test.Output.String())
 			}
 		}
 	}

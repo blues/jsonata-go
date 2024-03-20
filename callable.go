@@ -5,18 +5,20 @@
 package jsonata
 
 import (
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
+	"sync"
 
-	"github.com/blues/jsonata-go/jlib"
-	"github.com/blues/jsonata-go/jparse"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/jlib"
+	"github.com/xiatechs/jsonata-go/jparse"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 type callableName struct {
+	mu   sync.Mutex
 	name string
 }
 
@@ -25,6 +27,8 @@ func (n callableName) Name() string {
 }
 
 func (n *callableName) SetName(s string) {
+	n.mu.Lock()
+	defer n.mu.Unlock()
 	n.name = s
 }
 
@@ -76,6 +80,7 @@ func newGoCallableParam(typ reflect.Type) goCallableParam {
 // A goCallable represents a built-in or third party Go function.
 // It implements the Callable interface.
 type goCallable struct {
+	mu sync.Mutex
 	callableName
 	callableMarshaler
 	fn               reflect.Value
@@ -205,6 +210,8 @@ func makeGoCallableParams(typ reflect.Type) []goCallableParam {
 }
 
 func (c *goCallable) SetContext(context reflect.Value) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.context = context
 }
 
@@ -682,7 +689,7 @@ func (f *transformationCallable) Call(argv []reflect.Value) (reflect.Value, erro
 
 	obj, err := f.clone(argv[0])
 	if err != nil {
-		return undefined, newEvalError(ErrClone, nil, nil)
+		return undefined, newEvalError(ErrClone, nil, nil, 0)
 	}
 
 	if obj == undefined {
@@ -739,7 +746,7 @@ func (f *transformationCallable) updateEntries(item reflect.Value) error {
 	}
 
 	if !jtypes.IsMap(updates) {
-		return newEvalError(ErrIllegalUpdate, f.updates, nil)
+		return newEvalError(ErrIllegalUpdate, f.updates, nil, 0)
 	}
 
 	for _, key := range updates.MapKeys() {
@@ -759,7 +766,7 @@ func (f *transformationCallable) deleteEntries(item reflect.Value) error {
 	deletes = arrayify(deletes)
 
 	if !jtypes.IsArrayOf(deletes, jtypes.IsString) {
-		return newEvalError(ErrIllegalDelete, f.deletes, nil)
+		return newEvalError(ErrIllegalDelete, f.deletes, nil, 0)
 	}
 
 	for i := 0; i < deletes.Len(); i++ {

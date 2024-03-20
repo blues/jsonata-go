@@ -61,6 +61,9 @@ const (
 	typeAnd
 	typeOr
 	typeIn
+
+	// Join operator
+	typeJoin
 )
 
 func (tt tokenType) String() string {
@@ -81,6 +84,8 @@ func (tt tokenType) String() string {
 		return "(variable)"
 	case typeRegex:
 		return "(regex)"
+	case typeJoin:
+		return "(join)"
 	default:
 		if s := symbolsAndKeywords[tt]; s != "" {
 			return s
@@ -114,6 +119,7 @@ var symbols1 = [...]tokenType{
 	'>': typeGreater,
 	'^': typeSort,
 	'&': typeConcat,
+	'@': typeJoin,
 }
 
 type runeTokenType struct {
@@ -311,7 +317,7 @@ Loop:
 			}
 			fallthrough
 		case eof:
-			return l.error(ErrUnterminatedString, string(quote))
+			return l.error(ErrUnterminatedString, fmt.Sprintf("%s, starting from character position %d", string(quote), l.start))
 		}
 	}
 
