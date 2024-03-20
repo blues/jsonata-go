@@ -2,6 +2,7 @@ package timeparse
 
 import (
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -76,7 +77,9 @@ func TimeDateDimensionsLite(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz s
 	}
 
 	// Input time stamp TIME values (we confirmed there need to be a seperate set of UTC values)
-	dateTimeID := localTime.Format("20060102150405000")
+	dateTimeID := localTime.Format("20060102150405.000")
+
+	dateTimeID = strings.ReplaceAll(dateTimeID, ".", "")
 
 	dateTimeKeyInt, err := strconv.Atoi(dateTimeID)
 	if err != nil {

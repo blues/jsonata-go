@@ -3,6 +3,7 @@ package timeparse
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -95,7 +96,9 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 		return nil, err
 	}
 
-	dateTimeID := localTime.Format("20060102150405000")
+	dateTimeID := localTime.Format("20060102150405.000")
+
+	dateTimeID = strings.ReplaceAll(dateTimeID, ".", "")
 
 	dateTimeKeyInt, err := strconv.Atoi(dateTimeID)
 	if err != nil {
@@ -138,12 +141,7 @@ func TimeDateDimensions(inputSrcTs, inputSrcFormat, inputSrcTz, requiredTz strin
 func getWeekOfYearString(date time.Time) (int, error) {
 	_, week := date.ISOWeek()
 
-	firstWednesday := date.AddDate(0, 0, -int(date.Weekday())+1)
-	if firstWednesday.Weekday() != time.Wednesday {
-		firstWednesday = firstWednesday.AddDate(0, 0, 7-int(firstWednesday.Weekday())+int(time.Wednesday))
-	}
-
-	if date.Weekday() == time.Sunday || date.Before(firstWednesday) {
+	if date.Weekday() == time.Sunday {
 		week--
 	}
 

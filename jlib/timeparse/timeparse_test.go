@@ -1,9 +1,10 @@
 package timeparse_test
 
 import (
-	"github.com/goccy/go-json"
 	"os"
 	"testing"
+
+	"github.com/goccy/go-json"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
