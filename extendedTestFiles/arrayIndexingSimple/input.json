@@ -1,0 +1,4 @@
+[
+    {"Code": "employees[0].name", "Val": "Alice"},
+    {"Code": "employees[1].name", "Value": "Bob"}
+]

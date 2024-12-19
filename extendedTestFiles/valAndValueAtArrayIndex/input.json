@@ -1,0 +1,5 @@
+[
+    {"Code":"data[2].entry","Val":"ThirdEntryVal","Value":"ThirdEntryValue"},
+    {"Code":"data[1].entry","Value":"SecondEntryValue"},
+    {"Code":"data[0].entry","Val":"FirstEntryVal"}
+]

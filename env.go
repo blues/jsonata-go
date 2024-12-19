@@ -11,9 +11,11 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/blues/jsonata-go/jlib"
-	"github.com/blues/jsonata-go/jparse"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/jlib"
+	"github.com/xiatechs/jsonata-go/jlib/join"
+	"github.com/xiatechs/jsonata-go/jlib/timeparse"
+	"github.com/xiatechs/jsonata-go/jparse"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 type environment struct {
@@ -66,6 +68,91 @@ var (
 )
 
 var baseEnv = initBaseEnv(map[string]Extension{
+
+	/*
+		EXTENDED START
+	*/
+	"objmerge": {
+		Func:               jlib.ObjMerge,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
+	"sjoin": {
+		Func:               jlib.SimpleJoin,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
+	"eval": {
+		Func:               RunEval,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
+	"unescape": {
+		Func:               jlib.Unescape,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
+	"hashmd5": {
+		Func:               jlib.HashMD5,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
+	"hash256": {
+		Func:               jlib.Hash256,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
+	"dateTimeDim": {
+		Func:               timeparse.TimeDateDimensions,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
+	"dateTimeDimLite": {
+		Func:               timeparse.TimeDateDimensionsLite,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
+	"timeSince": {
+		Func:               timeparse.Since,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+
+	"objectsToDocument": {
+		Func:               jlib.ObjectsToDocument,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
+	"oneToManyJoin": {
+		Func:               join.OneToManyJoin,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
+	"accumulatingSlice": {
+		Func:               jlib.FoldArray,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
+	"renameKeys": {
+		Func:               jlib.RenameKeys,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: nil,
+	},
+
+	/*
+		EXTENDED END
+	*/
 
 	// String functions
 
@@ -442,7 +529,6 @@ func undefinedHandlerAppend(argv []reflect.Value) bool {
 // Context handlers
 
 func contextHandlerSubstring(argv []reflect.Value) bool {
-
 	// If substring() is called with one or two numeric arguments,
 	// use the evaluation context as the first argument.
 	switch len(argv) {

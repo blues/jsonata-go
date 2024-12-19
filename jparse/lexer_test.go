@@ -5,8 +5,10 @@
 package jparse
 
 import (
-	"reflect"
+	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type lexerTestCase struct {
@@ -163,7 +165,7 @@ func TestLexerStrings(t *testing.T) {
 			Error: &Error{
 				Type:     ErrUnterminatedString,
 				Token:    "No closing quote...",
-				Hint:     "\"",
+				Hint:     "\", starting from character position 1",
 				Position: 1,
 			},
 		},
@@ -175,7 +177,7 @@ func TestLexerStrings(t *testing.T) {
 			Error: &Error{
 				Type:     ErrUnterminatedString,
 				Token:    "No closing quote...",
-				Hint:     "'",
+				Hint:     "', starting from character position 1",
 				Position: 1,
 			},
 		},
@@ -392,10 +394,10 @@ func compareTokens(t *testing.T, prefix string, exp, got token) {
 }
 
 func compareErrors(t *testing.T, prefix string, exp, got error) {
-
-	if !reflect.DeepEqual(exp, got) {
-		t.Errorf("%s: expected error %v, got %v", prefix, exp, got)
+	if exp != nil && got != nil {
+		assert.EqualError(t, exp, fmt.Sprintf("%v", got))
 	}
+
 }
 
 func tok(typ tokenType, value string, position int) token {

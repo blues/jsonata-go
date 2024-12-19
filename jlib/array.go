@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 // Count (golint)
@@ -45,14 +45,14 @@ func Distinct(v reflect.Value) interface{} {
 		for i := 0; i < items.Len(); i++ {
 			item := jtypes.Resolve(items.Index(i))
 
-			if jtypes.IsMap(item) {
-				// We can't hash a map, so convert it to a
+			if jtypes.IsMap(item) || jtypes.IsArray(item) {
+				// We can't hash a map or array, so convert it to a
 				// string that is hashable
-				mapItem := fmt.Sprint(item.Interface())
-				if _, ok := visited[mapItem]; ok {
+				unhashableItem := fmt.Sprint(item.Interface())
+				if _, ok := visited[unhashableItem]; ok {
 					continue
 				}
-				visited[mapItem] = struct{}{}
+				visited[unhashableItem] = struct{}{}
 				distinctValues = reflect.Append(distinctValues, item)
 
 				continue

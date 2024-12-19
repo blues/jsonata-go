@@ -1,0 +1,29 @@
+{
+    "root": {
+        "list": [
+            {
+                "items": [
+                    {"value":"Item0-0"},
+                    {"value":"Item0-1"}
+                ]
+            },
+            {
+                "items": [
+                    {"value":"Item1-0"}
+                ]
+            },
+            {
+                "info": [
+                    {},
+                    {},
+                    {
+                        "details": [
+                            {},
+                            {"desc": "DeepNestedValue"}
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

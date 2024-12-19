@@ -9,12 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/blues/jsonata-go/jlib"
-	"github.com/blues/jsonata-go/jtypes"
+	"github.com/xiatechs/jsonata-go/jlib"
+	"github.com/xiatechs/jsonata-go/jtypes"
 )
 
 func TestFromMillis(t *testing.T) {
-
 	date := time.Date(2018, time.September, 30, 15, 58, 5, int(762*time.Millisecond), time.UTC)
 	input := date.UnixNano() / int64(time.Millisecond)
 
@@ -28,10 +27,10 @@ func TestFromMillis(t *testing.T) {
 			Picture: "[Y0001]-[M01]-[D01]",
 			Output:  "2018-09-30",
 		},
-		/*{
+		{
 			Picture: "[[[Y0001]-[M01]-[D01]]]",
 			Output:  "[2018-09-30]",
-		},*/
+		},
 		{
 			Picture: "[M]-[D]-[Y]",
 			Output:  "9-30-2018",
@@ -116,4 +115,103 @@ func TestFromMillis(t *testing.T) {
 			t.Errorf("%s: Expected %q, got %q", test.Picture, test.Output, got)
 		}
 	}
+}
+
+func TestToMillis(t *testing.T) {
+	var picture jtypes.OptionalString
+	var tz jtypes.OptionalString
+
+	t.Run("2023-01-31T10:44:59.800 is truncated to [Y0001]-[M01]-[D01]", func(t *testing.T) {
+		picture.Set(reflect.ValueOf("[Y0001]-[M01]-[D01]"))
+
+		// time string is cut down to match the layout provided
+		_, err := jlib.ToMillis("2023-01-31T10:44:59.800", picture, tz)
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	t.Run("2023-01-31T10:44:59.800 can be parsed", func(t *testing.T) {
+		picture.Set(reflect.ValueOf("[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]"))
+
+		// time string is cut down to match the layout provided
+		_, err := jlib.ToMillis("2023-01-31T10:44:59.800", picture, tz)
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	t.Run("Whitespace is trimmed to ensure layout and time string match", func(t *testing.T) {
+		picture.Set(reflect.ValueOf("[Y0001]-[M01]-[D01] [H01]:[m01]:[s01]"))
+
+		// time string is cut down to match the layout provided
+		_, err := jlib.ToMillis("2023-01-3110:44:59", picture, tz)
+		if err != nil {
+			t.Error(err.Error())
+		}
+	})
+
+	t.Run("Milliseconds are ignored from the date time string", func(t *testing.T) {
+		picture.Set(reflect.ValueOf("[Y0001]-[M01]-[D01][H01]:[m01]:[s01]"))
+
+		// time string is cut down to match the layout provided
+		_, err := jlib.ToMillis("2023-01-3110:44:59.100", picture, tz)
+		if err != nil {
+			t.Error(err.Error())
+		}
+	})
+
+	t.Run("T is removed from date time string if it doesn't appear in the layout", func(t *testing.T) {
+		picture.Set(reflect.ValueOf("[Y0001]-[M01]-[D01] [H01]:[m01]:[s01]"))
+
+		// time string is cut down to match the layout provided
+		_, err := jlib.ToMillis("2023-01-31T10:44:59.800", picture, tz)
+		if err != nil {
+			t.Error(err.Error())
+		}
+	})
+
+	t.Run("T is removed from layout string if it doesn't appear in the date time", func(t *testing.T) {
+		picture.Set(reflect.ValueOf("[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]"))
+
+		// time string is cut down to match the layout provided
+		_, err := jlib.ToMillis("2023-01-31 10:44:59.800", picture, tz)
+		if err != nil {
+			t.Error(err.Error())
+		}
+	})
+
+	t.Run("No picture is passed to the to millis function", func(t *testing.T) {
+		// time string is cut down to match the layout provided
+		_, err := jlib.ToMillis("2023-01-31T10:47:06.260", picture, tz)
+		if err != nil {
+			t.Error(err.Error())
+		}
+	})
+
+	t.Run("Picture contains timezone (using RFC3339 format) but no timezone provided in date time string", func(t *testing.T) {
+		picture.Set(reflect.ValueOf("[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01][Z]"))
+		_, err := jlib.ToMillis("2023-01-31T10:47:06.260", picture, tz)
+		if err != nil {
+			t.Error(err.Error())
+		}
+	})
+
+	t.Run("[P] placeholder within date format & date time string", func(t *testing.T) {
+		picture.Set(reflect.ValueOf("[Y0001]-[M01]-[D01] [H01]:[m01]:[s01] [P]"))
+		// time string is cut down to match the layout provided
+		_, err := jlib.ToMillis("2023-01-31 10:44:59 AM", picture, tz)
+		if err != nil {
+			t.Error(err.Error())
+		}
+	})
+
+	t.Run("AM present on date time string but not in the layout", func(t *testing.T) {
+		picture.Set(reflect.ValueOf("[Y0001]-[M01]-[D01] [H01]:[m01]:[s01]"))
+		// time string is cut down to match the layout provided
+		_, err := jlib.ToMillis("2023-01-31 10:44:59 AM", picture, tz)
+		if err != nil {
+			t.Error(err.Error())
+		}
+	})
 }

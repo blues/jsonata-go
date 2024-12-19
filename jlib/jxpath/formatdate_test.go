@@ -11,7 +11,6 @@ import (
 )
 
 func TestFormatYear(t *testing.T) {
-
 	input := time.Date(2018, time.April, 1, 12, 0, 0, 0, time.UTC)
 
 	data := []struct {
@@ -23,6 +22,10 @@ func TestFormatYear(t *testing.T) {
 			// Default layout is 1.
 			Picture: "[Y]",
 			Output:  "2018",
+		},
+		{
+			Picture: "[Y0001] [M01] [D01]",
+			Output:  "2018 04 01",
 		},
 		{
 			Picture: "[Y1]",
@@ -81,8 +84,22 @@ func TestFormatYear(t *testing.T) {
 	}
 }
 
-func TestFormatTimezone(t *testing.T) {
+func TestFormatYearAndTimezone(t *testing.T) {
+	location, _ := time.LoadLocation("Europe/Rome")
+	input := time.Date(2018, time.April, 1, 12, 0, 0, 0, location)
 
+	picture := "[Y0001]-[M01]-[D01] [H01]:[m01]:[s01] [P]"
+
+	got, err := FormatTime(input, picture)
+	if err != nil {
+		t.Errorf("unable to format time %+v", err)
+	}
+	if got != "2018-04-01 12:00:00 pm" {
+		t.Errorf("got %s expected %s", got, "2018-04-01 12:00:00 pm")
+	}
+}
+
+func TestFormatTimezone(t *testing.T) {
 	const minutes = 60
 	const hours = 60 * minutes
 

@@ -45,36 +45,36 @@ const (
 )
 
 var errmsgs = map[ErrType]string{
-	ErrSyntaxError:        "syntax error: '{{token}}'",
-	ErrUnexpectedEOF:      "unexpected end of expression",
-	ErrUnexpectedToken:    "expected token '{{hint}}', got '{{token}}'",
-	ErrMissingToken:       "expected token '{{hint}}' before end of expression",
-	ErrPrefix:             "the symbol '{{token}}' cannot be used as a prefix operator",
-	ErrInfix:              "the symbol '{{token}}' cannot be used as an infix operator",
-	ErrUnterminatedString: "unterminated string literal (no closing '{{hint}}')",
-	ErrUnterminatedRegex:  "unterminated regular expression (no closing '{{hint}}')",
-	ErrUnterminatedName:   "unterminated name (no closing '{{hint}}')",
-	ErrIllegalEscape:      "illegal escape sequence \\{{hint}}",
-	ErrIllegalEscapeHex:   "illegal escape sequence \\{{hint}}: \\u must be followed by a 4-digit hexadecimal code point",
-	ErrInvalidNumber:      "invalid number literal {{token}}",
-	ErrNumberRange:        "invalid number literal {{token}}: value out of range",
-	ErrEmptyRegex:         "invalid regular expression: expression cannot be empty",
-	ErrInvalidRegex:       "invalid regular expression {{token}}: {{hint}}",
-	ErrGroupPredicate:     "a predicate cannot follow a grouping expression in a path step",
-	ErrGroupGroup:         "a path step can only have one grouping expression",
-	ErrPathLiteral:        "invalid path step {{hint}}: paths cannot contain nulls, strings, numbers or booleans",
-	ErrIllegalAssignment:  "illegal assignment: {{hint}} is not a variable",
-	ErrIllegalParam:       "illegal function parameter: {{token}} is not a variable",
-	ErrDuplicateParam:     "duplicate function parameter: {{token}}",
-	ErrParamCount:         "invalid type signature: number of types must match number of function parameters",
-	ErrInvalidUnionType:   "invalid type signature: unsupported union type '{{hint}}'",
-	ErrUnmatchedOption:    "invalid type signature: option '{{hint}}' must follow a parameter",
-	ErrUnmatchedSubtype:   "invalid type signature: subtypes must follow a parameter",
-	ErrInvalidSubtype:     "invalid type signature: parameter type {{hint}} does not support subtypes",
-	ErrInvalidParamType:   "invalid type signature: unknown parameter type '{{hint}}'",
+	ErrSyntaxError:        "syntax error: '{{token}}', position: {{position}}",
+	ErrUnexpectedEOF:      "unexpected end of expression, position: {{position}}",
+	ErrUnexpectedToken:    "expected token '{{hint}}', got '{{token}}', position: {{position}}",
+	ErrMissingToken:       "expected token '{{hint}}' before end of expression, position: {{position}}",
+	ErrPrefix:             "the symbol '{{token}}' cannot be used as a prefix operator, position: {{position}}",
+	ErrInfix:              "the symbol '{{token}}' cannot be used as an infix operator, position: {{position}}",
+	ErrUnterminatedString: "unterminated string literal (no closing '{{hint}}'), position: {{position}}",
+	ErrUnterminatedRegex:  "unterminated regular expression (no closing '{{hint}}'), position: {{position}}",
+	ErrUnterminatedName:   "unterminated name (no closing '{{hint}}'), position: {{position}}",
+	ErrIllegalEscape:      "illegal escape sequence \\{{hint}}, position: {{position}}",
+	ErrIllegalEscapeHex:   "illegal escape sequence \\{{hint}}: \\u must be followed by a 4-digit hexadecimal code point, position: {{position}}",
+	ErrInvalidNumber:      "invalid number literal {{token}}, {{position}}, position: {{position}}",
+	ErrNumberRange:        "invalid number literal {{token}}: value out of range, position: {{position}}",
+	ErrEmptyRegex:         "invalid regular expression: expression cannot be empty, position: {{position}}",
+	ErrInvalidRegex:       "invalid regular expression {{token}}: {{hint}}, position: {{position}}",
+	ErrGroupPredicate:     "a predicate cannot follow a grouping expression in a path step, position: {{position}}",
+	ErrGroupGroup:         "a path step can only have one grouping expression, position: {{position}}",
+	ErrPathLiteral:        "invalid path step {{hint}}: paths cannot contain nulls, strings, numbers or booleans, position: {{position}}",
+	ErrIllegalAssignment:  "illegal assignment: {{hint}} is not a variable, position: {{position}}",
+	ErrIllegalParam:       "illegal function parameter: {{token}} is not a variable, position: {{position}}",
+	ErrDuplicateParam:     "duplicate function parameter: {{token}}, position: {{position}}",
+	ErrParamCount:         "invalid type signature: number of types must match number of function parameters, position: {{position}}",
+	ErrInvalidUnionType:   "invalid type signature: unsupported union type '{{hint}}', position: {{position}}",
+	ErrUnmatchedOption:    "invalid type signature: option '{{hint}}' must follow a parameter, position: {{position}}",
+	ErrUnmatchedSubtype:   "invalid type signature: subtypes must follow a parameter, position: {{position}}",
+	ErrInvalidSubtype:     "invalid type signature: parameter type {{hint}} does not support subtypes, position: {{position}}",
+	ErrInvalidParamType:   "invalid type signature: unknown parameter type '{{hint}}', position: {{position}}",
 }
 
-var reErrMsg = regexp.MustCompile("{{(token|hint)}}")
+var reErrMsg = regexp.MustCompile("{{(token|hint|position)}}")
 
 // Error describes an error during parsing.
 type Error struct {
@@ -86,6 +86,7 @@ type Error struct {
 
 func newError(typ ErrType, tok token) error {
 	return newErrorHint(typ, tok, "")
+
 }
 
 func newErrorHint(typ ErrType, tok token, hint string) error {
@@ -110,6 +111,8 @@ func (e Error) Error() string {
 			return e.Token
 		case "{{hint}}":
 			return e.Hint
+		case "{{position}}":
+			return fmt.Sprintf("%v", e.Position)
 		default:
 			return match
 		}

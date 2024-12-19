@@ -1,0 +1,6 @@
+[
+    {"Code":"root.list[0].items[0].value","Val":"Item0-0"},
+    {"Code":"root.list[0].items[1].value","Value":"Item0-1"},
+    {"Code":"root.list[1].items[0].value","Val":"Item1-0"},
+    {"Code":"root.list[2].info[2].details[1].desc","Value":"DeepNestedValue"}
+]
