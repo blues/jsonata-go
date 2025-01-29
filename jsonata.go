@@ -6,6 +6,7 @@ package jsonata
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"sync"
@@ -221,7 +222,7 @@ func (e *Expr) String() string {
 // EvalString evaluates a JSONata expression string with optional context
 func EvalString(expr string, context ...interface{}) (interface{}, error) {
 	if expr == "" {
-		return nil, fmt.Errorf("empty expression string")
+		return nil, errors.New("empty expression string")
 	}
 
 	e, err := Compile(expr)
@@ -245,12 +246,12 @@ func EvalString(expr string, context ...interface{}) (interface{}, error) {
 // Assert evaluates a condition and returns an error if it's false
 func Assert(condition interface{}, message ...interface{}) (interface{}, error) {
 	if condition == nil {
-		return nil, fmt.Errorf("first argument of assert cannot be null")
+		return nil, errors.New("first argument of assert cannot be null")
 	}
 
 	cond, ok := jtypes.AsBool(reflect.ValueOf(condition))
 	if !ok {
-		return nil, fmt.Errorf("first argument of assert must be a boolean")
+		return nil, errors.New("first argument of assert must be a boolean")
 	}
 
 	if !cond {
@@ -269,7 +270,7 @@ func Assert(condition interface{}, message ...interface{}) (interface{}, error) 
 // Error creates an error with the given message
 func Error(message interface{}) (interface{}, error) {
 	if message == nil {
-		return nil, fmt.Errorf("error")
+		return nil, errors.New("error")
 	}
 
 	msg, ok := jtypes.AsString(reflect.ValueOf(message))
