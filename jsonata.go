@@ -149,7 +149,7 @@ func (e *Expr) Eval(data interface{}) (interface{}, error) {
 	}
 
 	if !result.CanInterface() {
-		return nil, fmt.Errorf("Eval returned a non-interface value")
+		return nil, errors.New("Eval returned a non-interface value")
 	}
 
 	if result.Kind() == reflect.Ptr && result.IsNil() {
@@ -260,7 +260,7 @@ func Assert(condition interface{}, message ...interface{}) (interface{}, error) 
 				msg = str
 			}
 		}
-		return nil, fmt.Errorf(msg)
+		return nil, errors.New(msg)
 	}
 
 	return true, nil
@@ -274,10 +274,10 @@ func Error(message interface{}) (interface{}, error) {
 
 	msg, ok := jtypes.AsString(reflect.ValueOf(message))
 	if !ok {
-		return nil, fmt.Errorf("argument of error must be a string")
+		return nil, errors.New("argument of error must be a string")
 	}
 
-	return nil, fmt.Errorf(msg)
+	return nil, errors.New(msg)
 }
 
 // Single ensures a sequence contains exactly one value
@@ -305,7 +305,7 @@ func Single(values interface{}, message ...interface{}) (interface{}, error) {
 				msg = str
 			}
 		}
-		return nil, fmt.Errorf(msg)
+		return nil, errors.New(msg)
 	}
 
 	if length > 1 {
@@ -315,7 +315,7 @@ func Single(values interface{}, message ...interface{}) (interface{}, error) {
 				msg = str
 			}
 		}
-		return nil, fmt.Errorf(msg)
+		return nil, errors.New(msg)
 	}
 
 	return v.Index(0).Interface(), nil
