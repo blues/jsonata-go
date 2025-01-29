@@ -430,7 +430,7 @@ func (l *lexer) scanNumber() token {
 		return token{Type: typeMinus, Value: "-", Position: pos}
 	}
 
-		// Handle special number formats (hex, binary, octal)
+	// Handle special number formats (hex, binary, octal)
 	if l.acceptRune('0') {
 		next := l.peek()
 		switch next {
@@ -473,17 +473,17 @@ func (l *lexer) scanNumber() token {
 			}
 			return token{Type: typeNumber, Value: l.input[pos:l.current], Position: pos}
 		}
-		
+
 		// Handle single zero or leading zeros
 		if !isDigit(next) {
 			return token{Type: typeNumber, Value: "0", Position: pos}
 		}
-		
+
 		l.acceptAll(isDigit)
 		if l.acceptRune('.') {
 			if !l.acceptAll(isDigit) {
 				l.backup()
-				return token{Type: typeNumber, Value: l.input[pos:l.current-1], Position: pos}
+				return token{Type: typeNumber, Value: l.input[pos : l.current-1], Position: pos}
 			}
 		}
 		if l.acceptRunes2('e', 'E') {
