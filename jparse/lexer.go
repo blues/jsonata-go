@@ -455,7 +455,20 @@ func (l *lexer) scanNumber() token {
 		}
 		// Handle leading zeros
 		if isDigit(next) {
-			return token{Type: typeNumber, Value: "0", Position: pos}
+			l.acceptAll(isDigit)
+			if l.acceptRune('.') {
+				if !l.acceptAll(isDigit) {
+					l.backup()
+					return token{Type: typeNumber, Value: l.input[pos:l.current-1], Position: pos}
+				}
+			}
+			if l.acceptRunes2('e', 'E') {
+				l.acceptRunes2('+', '-')
+				if !l.acceptAll(isDigit) {
+					return token{Type: typeError, Value: "invalid number literal", Position: pos}
+				}
+			}
+			return token{Type: typeNumber, Value: l.input[pos:l.current], Position: pos}
 		}
 	}
 
