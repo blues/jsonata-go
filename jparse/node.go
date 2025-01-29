@@ -64,20 +64,41 @@ type NumberNode struct {
 }
 
 func parseNumber(p *parser, t token) (Node, error) {
+	var n float64
+	var err error
 
-	// Number literals are promoted to type float64.
-	n, err := strconv.ParseFloat(t.Value, 64)
-	if err != nil {
-		typ := ErrInvalidNumber
-		if e, ok := err.(*strconv.NumError); ok && e.Err == strconv.ErrRange {
-			typ = ErrNumberRange
+	// Handle special number formats
+	switch {
+	case strings.HasPrefix(t.Value, "0b") || strings.HasPrefix(t.Value, "0B"):
+		val, err := strconv.ParseInt(t.Value[2:], 2, 64)
+		if err != nil {
+			return nil, newError(ErrInvalidNumber, t)
 		}
-		return nil, newError(typ, t)
+		n = float64(val)
+	case strings.HasPrefix(t.Value, "0o") || strings.HasPrefix(t.Value, "0O"):
+		val, err := strconv.ParseInt(t.Value[2:], 8, 64)
+		if err != nil {
+			return nil, newError(ErrInvalidNumber, t)
+		}
+		n = float64(val)
+	case strings.HasPrefix(t.Value, "0x") || strings.HasPrefix(t.Value, "0X"):
+		val, err := strconv.ParseInt(t.Value[2:], 16, 64)
+		if err != nil {
+			return nil, newError(ErrInvalidNumber, t)
+		}
+		n = float64(val)
+	default:
+		n, err = strconv.ParseFloat(t.Value, 64)
+		if err != nil {
+			typ := ErrInvalidNumber
+			if e, ok := err.(*strconv.NumError); ok && e.Err == strconv.ErrRange {
+				typ = ErrNumberRange
+			}
+			return nil, newError(typ, t)
+		}
 	}
 
-	return &NumberNode{
-		Value: n,
-	}, nil
+	return &NumberNode{Value: n}, nil
 }
 
 func (n *NumberNode) optimize() (Node, error) {

@@ -500,9 +500,11 @@ func (l *lexer) scanNumber() token {
 
 	// Handle decimal point
 	if l.acceptRune('.') {
-		if !l.acceptAll(isDigit) && !hasDigits {
-			l.backup()
-			return token{Type: typeDot, Value: ".", Position: pos}
+		if !l.acceptAll(isDigit) {
+			if !hasDigits {
+				l.backup()
+				return token{Type: typeDot, Value: ".", Position: pos}
+			}
 		}
 	}
 
@@ -514,7 +516,8 @@ func (l *lexer) scanNumber() token {
 		}
 	}
 
-	if !hasDigits && !l.acceptAll(isDigit) {
+	// Validate number format
+	if !hasDigits && !strings.Contains(l.input[pos:l.current], ".") {
 		return token{Type: typeError, Value: "invalid number literal", Position: pos}
 	}
 
