@@ -666,9 +666,7 @@ func isDigit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
-func isNonZeroDigit(r rune) bool {
-	return r >= '1' && r <= '9'
-}
+
 
 func isBinaryDigit(r rune) bool {
 	return r == '0' || r == '1'

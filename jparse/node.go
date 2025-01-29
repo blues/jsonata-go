@@ -307,11 +307,6 @@ func (n PathNode) Evaluate(ctx *Context) (interface{}, error) {
 
 	var current interface{} = ctx.Input
 	for i, step := range n.Steps {
-		stepNode, ok := step.(Node)
-		if !ok {
-			return nil, fmt.Errorf("invalid path step type at position %d", i)
-		}
-
 		nextCtx := &Context{
 			Parent:   ctx,
 			Position: -1,
@@ -319,7 +314,7 @@ func (n PathNode) Evaluate(ctx *Context) (interface{}, error) {
 		}
 
 		var err error
-		current, err = stepNode.Evaluate(nextCtx)
+		current, err = step.Evaluate(nextCtx)
 		if err != nil {
 			return nil, err
 		}
@@ -1559,7 +1554,6 @@ func (n PredicateNode) Evaluate(ctx *Context) (interface{}, error) {
 				}
 			default:
 				match = false
-				break
 			}
 		}
 
@@ -2416,89 +2410,7 @@ func (n FunctionApplicationNode) Evaluate(ctx *Context) (interface{}, error) {
 // expressions. It is deliberately unexported and creates a PathNode
 // during its optimize phase.
 
-// A dotNode is an interim structure used to process JSONata path
-// expressions. It is deliberately unexported and creates a PathNode
-// during its optimize phase.
-type dotNode struct {
-	lhs Node
-	rhs Node
-}
 
-func parseDot(p *parser, t token, lhs Node) (Node, error) {
-	return &dotNode{
-		lhs: lhs,
-		rhs: p.parseExpression(p.bp(t.Type)),
-	}, nil
-}
-
-func (n *dotNode) optimize() (Node, error) {
-	path := &PathNode{}
-
-	lhs, err := n.lhs.optimize()
-	if err != nil {
-		return nil, err
-	}
-
-	switch lhs := lhs.(type) {
-	case *NumberNode, *StringNode, *BooleanNode, *NullNode:
-		return nil, &Error{
-			Type: ErrPathLiteral,
-			Hint: lhs.String(),
-		}
-	case *PathNode:
-		path.Steps = lhs.Steps
-		if lhs.KeepArrays {
-			path.KeepArrays = true
-		}
-	default:
-		path.Steps = []Node{lhs}
-	}
-
-	rhs, err := n.rhs.optimize()
-	if err != nil {
-		return nil, err
-	}
-
-	switch rhs := rhs.(type) {
-	case *NumberNode, *StringNode, *BooleanNode, *NullNode:
-		return nil, &Error{
-			Type: ErrPathLiteral,
-			Hint: rhs.String(),
-		}
-	case *PathNode:
-		path.Steps = append(path.Steps, rhs.Steps...)
-		if rhs.KeepArrays {
-			path.KeepArrays = true
-		}
-	default:
-		path.Steps = append(path.Steps, rhs)
-	}
-
-	return path, nil
-}
-
-func (n dotNode) String() string {
-	return fmt.Sprintf("%s.%s", n.lhs, n.rhs)
-}
-
-func (n dotNode) Evaluate(ctx *Context) (interface{}, error) {
-	lhs, err := n.lhs.Evaluate(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if lhs == nil {
-		return nil, nil
-	}
-
-	rhsCtx := &Context{
-		Input:    lhs,
-		Parent:   ctx,
-		Position: -1,
-	}
-
-	return n.rhs.Evaluate(rhsCtx)
-}
 
 // A singletonArrayNode is an interim data structure used when
 // processing path expressions. It is deliberately unexported

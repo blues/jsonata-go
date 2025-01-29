@@ -58,7 +58,7 @@ func (n CrossReferenceNode) Evaluate(ctx *Context) (interface{}, error) {
 				itemCtx = itemCtx.WithVariable(varNode.Name, item)
 				
 				// If there's a predicate after the variable, evaluate it
-				if pred, ok := varNode.Next.(Node); ok {
+				if pred := varNode.Next; pred != nil {
 					predCtx := itemCtx.WithInput(item)
 					result, err := pred.Evaluate(predCtx)
 					if err != nil {
@@ -133,7 +133,7 @@ func (n CrossReferenceNode) Evaluate(ctx *Context) (interface{}, error) {
 		rhsCtx = rhsCtx.WithVariable(varNode.Name, lhs)
 		
 		// If there's a predicate after the variable, evaluate it
-		if pred, ok := varNode.Next.(Node); ok {
+		if pred := varNode.Next; pred != nil {
 			predCtx := rhsCtx.WithInput(lhs)
 			result, err := pred.Evaluate(predCtx)
 			if err != nil {
