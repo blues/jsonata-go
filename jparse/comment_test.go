@@ -12,17 +12,47 @@ func TestCommentLexer(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:  "basic comment",
+			name:  "basic multiline comment",
 			input: "/* this is a comment */ 42",
 			want:  []tokenType{typeNumber},
 		},
 		{
-			name:  "comment between tokens",
+			name:  "multiline comment between tokens",
 			input: "1 /* comment */ + 2",
 			want:  []tokenType{typeNumber, typePlus, typeNumber},
 		},
 		{
-			name:    "unterminated comment",
+			name:  "inline comment",
+			input: "42 // this is a comment\n43",
+			want:  []tokenType{typeNumber, typeNumber},
+		},
+		{
+			name:  "inline comment at end",
+			input: "42 // this is a comment",
+			want:  []tokenType{typeNumber},
+		},
+		{
+			name:  "multiple inline comments",
+			input: "1 // first\n2 // second\n3",
+			want:  []tokenType{typeNumber, typeNumber, typeNumber},
+		},
+		{
+			name:  "mixed comment styles",
+			input: "1 /* multi */ 2 // inline\n3",
+			want:  []tokenType{typeNumber, typeNumber, typeNumber},
+		},
+		{
+			name:  "comment in object",
+			input: "{/* comment */\"a\":1}",
+			want:  []tokenType{typeBraceOpen, typeString, typeColon, typeNumber, typeBraceClose},
+		},
+		{
+			name:  "comment in array",
+			input: "[1,/* comment */2]",
+			want:  []tokenType{typeBracketOpen, typeNumber, typeComma, typeNumber, typeBracketClose},
+		},
+		{
+			name:    "unterminated multiline comment",
 			input:   "/* unterminated",
 			want:    []tokenType{typeError},
 			wantErr: true,
@@ -30,6 +60,11 @@ func TestCommentLexer(t *testing.T) {
 		{
 			name:  "nested-looking comment",
 			input: "/* outer /* inner */ 42",
+			want:  []tokenType{typeNumber},
+		},
+		{
+			name:  "complex nested comments",
+			input: "/* a /* b /* c */ d */ e */ 42",
 			want:  []tokenType{typeNumber},
 		},
 	}

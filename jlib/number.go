@@ -16,14 +16,19 @@ import (
 	"github.com/blues/jsonata-go/jtypes"
 )
 
-var reNumber = regexp.MustCompile(`^-?(([0-9]+))(\.[0-9]+)?([Ee][-+]?[0-9]+)?$`)
+var (
+	reNumber = regexp.MustCompile(`^-?(([0-9]+))(\.[0-9]+)?([Ee][-+]?[0-9]+)?$`)
+	reBinary = regexp.MustCompile(`^0[bB][01]+$`)
+	reOctal  = regexp.MustCompile(`^0[oO][0-7]+$`)
+	reHex    = regexp.MustCompile(`^0[xX][0-9a-fA-F]+$`)
+)
 
 // Number converts values to numbers. Numeric values are returned
 // unchanged. Strings in legal JSON number format are converted
-// to the number they represent. Boooleans are converted to 0 or 1.
+// to the number they represent. Booleans are converted to 0 or 1.
 // All other types trigger an error.
-func Number(value StringNumberBool) (float64, error) {
-	v := reflect.Value(value)
+func Number(value interface{}) (float64, error) {
+	v := reflect.ValueOf(value)
 	if b, ok := jtypes.AsBool(v); ok {
 		if b {
 			return 1, nil
@@ -36,7 +41,24 @@ func Number(value StringNumberBool) (float64, error) {
 	}
 
 	s, ok := jtypes.AsString(v)
-	if ok && reNumber.MatchString(s) {
+	if !ok {
+		return 0, fmt.Errorf("unable to cast value to a number")
+	}
+	s = strings.TrimSpace(s)
+
+	if reBinary.MatchString(s) {
+		n, _ := strconv.ParseInt(s[2:], 2, 64)
+		return float64(n), nil
+	}
+	if reOctal.MatchString(s) {
+		n, _ := strconv.ParseInt(s[2:], 8, 64)
+		return float64(n), nil
+	}
+	if reHex.MatchString(s) {
+		n, _ := strconv.ParseInt(s[2:], 16, 64)
+		return float64(n), nil
+	}
+	if reNumber.MatchString(s) {
 		if n, err := strconv.ParseFloat(s, 64); err == nil {
 			return n, nil
 		}
@@ -110,6 +132,75 @@ func Sqrt(x float64) (float64, error) {
 // Random returns a random floating point number between 0 and 1.
 func Random() float64 {
 	return rand.Float64()
+}
+
+// Abs returns the absolute value of x.
+func Abs(x float64) float64 {
+	return math.Abs(x)
+}
+
+// Ceil returns the least integer value greater than or equal to x.
+func Ceil(x float64) float64 {
+	return math.Ceil(x)
+}
+
+// Floor returns the greatest integer value less than or equal to x.
+func Floor(x float64) float64 {
+	return math.Floor(x)
+}
+
+// FormatBase formats a number using the specified base (2-36).
+func FormatBase(x float64, base jtypes.OptionalFloat64) (string, error) {
+	radix := 10
+	if base.IsSet() {
+		radix = int(Round(base.Float64, jtypes.OptionalInt{}))
+	}
+
+	if radix < 2 || radix > 36 {
+		return "", fmt.Errorf("the second argument to formatBase must be between 2 and 36")
+	}
+	n := int64(Round(x, jtypes.OptionalInt{}))
+	return strconv.FormatInt(n, radix), nil
+}
+
+// FormatInteger formats an integer using the specified picture string.
+func FormatInteger(x float64, picture string) (string, error) {
+	if picture == "" {
+		return strconv.FormatInt(int64(Round(x, jtypes.OptionalInt{})), 10), nil
+	}
+	return formatNumberWithPicture(x, picture, jtypes.OptionalValue{})
+}
+
+// FormatNumber formats a number using the specified picture string and options.
+func FormatNumber(x float64, picture string, options jtypes.OptionalValue) (string, error) {
+	if picture == "" {
+		return strconv.FormatFloat(x, 'f', -1, 64), nil
+	}
+	return formatNumberWithPicture(x, picture, options)
+}
+
+// ParseInteger parses a string as an integer using the specified base.
+func ParseInteger(value interface{}, base jtypes.OptionalFloat64) (float64, error) {
+	s, ok := jtypes.AsString(reflect.ValueOf(value))
+	if !ok {
+		return 0, fmt.Errorf("first argument of parseInteger must be a string")
+	}
+	s = strings.TrimSpace(s)
+
+	radix := 10
+	if base.IsSet() {
+		radix = int(Round(base.Float64, jtypes.OptionalInt{}))
+	}
+
+	if radix < 0 || radix == 1 || radix > 36 {
+		return 0, fmt.Errorf("invalid base: %d", radix)
+	}
+
+	n, err := strconv.ParseInt(s, radix, 64)
+	if err != nil {
+		return 0, err
+	}
+	return float64(n), nil
 }
 
 // multByPow10 multiplies a number by 10 to the power of n.

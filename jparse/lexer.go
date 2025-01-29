@@ -6,6 +6,7 @@ package jparse
 
 import (
 	"fmt"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -43,9 +44,9 @@ const (
 	typeMult
 	typeDiv
 	typeMod
-	typeParent
-	typeCrossRef
-	typePosition
+	typeParent    // %
+	typeCrossRef  // @
+	typePosition  // #
 	typePipe
 	typeEqual
 	typeNotEqual
@@ -111,6 +112,8 @@ var symbols1 = [...]tokenType{
 	'*': typeMult,
 	'/': typeDiv,
 	'%': typeMod,
+	'@': typeCrossRef,
+	'#': typePosition,
 	'|': typePipe,
 	'=': typeEqual,
 	'<': typeLess,
@@ -127,6 +130,7 @@ type runeTokenType struct {
 // symbols2 maps 2-character symbols to the corresponding
 // token types.
 var symbols2 = [...][]runeTokenType{
+	'%': {{'%', typeMod}},
 	'!': {{'=', typeNotEqual}},
 	'<': {{'=', typeLessEqual}},
 	'>': {{'=', typeGreaterEqual}},
@@ -178,6 +182,7 @@ type token struct {
 	Type     tokenType
 	Value    string
 	Position int
+	Flags    string // Used for regex flags
 }
 
 // lexer converts a JSONata expression into a sequence of tokens.
@@ -212,65 +217,106 @@ func newLexer(input string) lexer {
 // the lexer will treat a forward slash like a regular
 // expression.
 func (l *lexer) next(allowRegex bool) token {
-
 	l.skipWhitespace()
 
+	pos := l.start
 	ch := l.nextRune()
 	if ch == eof {
 		return l.eof()
 	}
 
+	// Handle comments and regex
 	if ch == '/' {
-		if l.nextRune() == '*' {
-			l.ignore()
-			for {
-				r := l.nextRune()
-				if r == '*' {
-					if l.nextRune() == '/' {
-						l.ignore()
-						return l.next(allowRegex) // skip comment and return next token
-					}
-					l.backup() // wasn't end of comment, put back the char after *
-				}
-				if r == eof {
-					return l.error(ErrUnterminatedComment, "")
-				}
-			}
+		next := l.peek()
+		if next == '*' || next == '/' {
+			l.backup()
+			return l.scanComment(allowRegex)
 		}
-		l.backup() // wasn't a comment, put back the char after /
 		if allowRegex {
-			l.ignore()
+			l.backup()
 			return l.scanRegex(ch)
 		}
+		return token{Type: typeDiv, Value: "/", Position: pos}
 	}
 
+	// Handle two-character operators first
 	if rts := lookupSymbol2(ch); rts != nil {
 		for _, rt := range rts {
 			if l.acceptRune(rt.r) {
-				return l.newToken(rt.tt)
+				return token{Type: rt.tt, Value: string(ch) + string(rt.r), Position: pos}
 			}
+		}
+		l.backup()
+	}
+
+	// Handle single-character operators and special cases
+	if tt := lookupSymbol1(ch); tt > 0 {
+		switch ch {
+		case '%':
+			next := l.peek()
+			if next == '.' || next == '[' || next == ']' {
+				return token{Type: typeParent, Value: "%", Position: pos}
+			}
+			return token{Type: typeMod, Value: "%", Position: pos}
+
+		case '@':
+			if l.acceptRune('$') {
+				start := l.current
+				for {
+					r := l.nextRune()
+					if r == eof || isWhitespace(r) || lookupSymbol1(r) > 0 || lookupSymbol2(r) != nil {
+						l.backup()
+						break
+					}
+				}
+				if l.current > start {
+					return token{Type: typeVariable, Value: l.input[start:l.current], Position: pos + 1}
+				}
+				l.backup() // Remove the $
+			}
+			return token{Type: typeCrossRef, Value: "@", Position: pos}
+
+		case '#':
+			if l.acceptRune('$') {
+				start := l.current
+				for {
+					r := l.nextRune()
+					if r == eof || isWhitespace(r) || lookupSymbol1(r) > 0 || lookupSymbol2(r) != nil {
+						l.backup()
+						break
+					}
+				}
+				if l.current > start {
+					return token{Type: typeVariable, Value: l.input[start:l.current], Position: pos + 1}
+				}
+				l.backup() // Remove the $
+			}
+			return token{Type: typePosition, Value: "#", Position: pos}
+
+		default:
+			return token{Type: tt, Value: string(ch), Position: pos}
 		}
 	}
 
-	if tt := lookupSymbol1(ch); tt > 0 {
-		return l.newToken(tt)
-	}
-
+	// Handle strings
 	if ch == '"' || ch == '\'' {
-		l.ignore()
+		l.backup()
 		return l.scanString(ch)
 	}
 
-	if ch >= '0' && ch <= '9' {
+	// Handle numbers
+	if ch == '-' || ch == '.' || (ch >= '0' && ch <= '9') {
 		l.backup()
 		return l.scanNumber()
 	}
 
+	// Handle escaped names
 	if ch == '`' {
-		l.ignore()
+		l.backup()
 		return l.scanEscapedName(ch)
 	}
 
+	// Handle names and variables
 	l.backup()
 	return l.scanName()
 }
@@ -279,43 +325,52 @@ func (l *lexer) next(allowRegex bool) token {
 // and returns a regex token. The opening delimiter has already
 // been consumed.
 func (l *lexer) scanRegex(delim rune) token {
+	pos := l.start
+	l.nextRune() // consume opening '/'
 
-	var depth int
-
-Loop:
+	var pattern strings.Builder
+	escaped := false
 	for {
-		switch l.nextRune() {
-		case delim:
-			if depth == 0 {
-				break Loop
-			}
-		case '(', '[', '{':
-			depth++
-		case ')', ']', '}':
-			depth--
-		case '\\':
-			if r := l.nextRune(); r != eof && r != '\n' {
-				break
-			}
-			fallthrough
-		case eof, '\n':
-			return l.error(ErrUnterminatedRegex, string(delim))
+		ch := l.nextRune()
+		if ch == eof {
+			return token{Type: typeError, Value: "unterminated regular expression (no closing '/')", Position: pos}
 		}
+		if escaped {
+			pattern.WriteRune('\\')
+			pattern.WriteRune(ch)
+			escaped = false
+			continue
+		}
+		if ch == '\\' {
+			escaped = true
+			continue
+		}
+		if ch == '/' && !escaped {
+			break
+		}
+		pattern.WriteRune(ch)
 	}
 
-	l.backup()
-	t := l.newToken(typeRegex)
-	l.acceptRune(delim)
-	l.ignore()
-
-	// Convert JavaScript-style regex flags to Go format,
-	// e.g. /ab+/i becomes /(?i)ab+/.
-	if l.acceptAll(isRegexFlag) {
-		flags := l.newToken(0)
-		t.Value = fmt.Sprintf("(?%s)%s", flags.Value, t.Value)
+	if pattern.Len() == 0 {
+		return token{Type: typeError, Value: "invalid regular expression: expression cannot be empty", Position: pos}
 	}
 
-	return t
+	var flags strings.Builder
+	for {
+		ch := l.peek()
+		if !isRegexFlag(ch) {
+			break
+		}
+		l.nextRune()
+		flags.WriteRune(ch)
+	}
+
+	flagStr := flags.String()
+	if flagStr != "" {
+		flagStr = "(?i" + strings.ReplaceAll(flagStr, "i", "") + ")"
+	}
+
+	return token{Type: typeRegex, Value: flagStr + pattern.String(), Position: pos}
 }
 
 // scanString reads a string literal from the current position
@@ -347,40 +402,77 @@ Loop:
 // scanNumber reads a number literal from the current position
 // and returns a number token.
 func (l *lexer) scanNumber() token {
-	if l.acceptRune('0') {
-		if l.acceptRunes2('b', 'B') {
-			if !l.acceptAll(isBinaryDigit) {
-				return l.error(ErrInvalidNumber, "binary")
-			}
-			return l.newToken(typeNumber)
-		}
-		if l.acceptRunes2('o', 'O') {
-			if !l.acceptAll(isOctalDigit) {
-				return l.error(ErrInvalidNumber, "octal")
-			}
-			return l.newToken(typeNumber)
-		}
-		if l.acceptRunes2('x', 'X') {
-			if !l.acceptAll(isHexDigit) {
-				return l.error(ErrInvalidNumber, "hex")
-			}
-			return l.newToken(typeNumber)
-		}
-	} else {
-		l.accept(isNonZeroDigit)
-		l.acceptAll(isDigit)
+	pos := l.start
+	
+	// Handle negative numbers
+	isNegative := l.acceptRune('-')
+	if isNegative && !isDigit(l.peek()) {
+		return token{Type: typeMinus, Value: "-", Position: pos}
 	}
+	
+	// Handle special number formats (hex, binary, octal)
+	if l.acceptRune('0') {
+		next := l.peek()
+		switch next {
+		case 'b', 'B':
+			l.nextRune()
+			if !l.acceptAll(isBinaryDigit) {
+				return token{Type: typeError, Value: "invalid binary number", Position: pos}
+			}
+			return token{Type: typeNumber, Value: l.input[pos:l.current], Position: pos}
+		case 'o', 'O':
+			l.nextRune()
+			if !l.acceptAll(isOctalDigit) {
+				return token{Type: typeError, Value: "invalid octal number", Position: pos}
+			}
+			return token{Type: typeNumber, Value: l.input[pos:l.current], Position: pos}
+		case 'x', 'X':
+			l.nextRune()
+			if !l.acceptAll(isHexDigit) {
+				return token{Type: typeError, Value: "invalid hexadecimal number", Position: pos}
+			}
+			return token{Type: typeNumber, Value: l.input[pos:l.current], Position: pos}
+		}
+		// Handle leading zeros
+		if isDigit(next) {
+			return token{Type: typeNumber, Value: "0", Position: pos}
+		}
+	}
+
+	// Handle decimal point at start
+	if l.peek() == '.' {
+		l.nextRune()
+		if !l.acceptAll(isDigit) {
+			l.backup()
+			return token{Type: typeDot, Value: ".", Position: pos}
+		}
+		return token{Type: typeNumber, Value: l.input[pos:l.current], Position: pos}
+	}
+
+	// Handle decimal numbers
+	hasDigits := l.acceptAll(isDigit)
+	
+	// Handle decimal point after digits
 	if l.acceptRune('.') {
 		if !l.acceptAll(isDigit) {
 			l.backup()
-			return l.newToken(typeNumber)
+			return token{Type: typeNumber, Value: l.input[pos:l.current-1], Position: pos}
 		}
 	}
+
+	// Handle exponent
 	if l.acceptRunes2('e', 'E') {
 		l.acceptRunes2('+', '-')
-		l.acceptAll(isDigit)
+		if !l.acceptAll(isDigit) {
+			return token{Type: typeError, Value: "invalid number literal", Position: pos}
+		}
 	}
-	return l.newToken(typeNumber)
+
+	if !hasDigits && l.input[pos] != '.' {
+		return token{Type: typeError, Value: "invalid number literal", Position: pos}
+	}
+
+	return token{Type: typeNumber, Value: l.input[pos:l.current], Position: pos}
 }
 
 // scanEscapedName reads a field name from the current position
@@ -407,11 +499,9 @@ Loop:
 // scanName reads from the current position and returns a name,
 // variable, or keyword token.
 func (l *lexer) scanName() token {
-
+	pos := l.start
 	isVar := l.acceptRune('$')
-	if isVar {
-		l.ignore()
-	}
+	start := l.current
 
 	for {
 		ch := l.nextRune()
@@ -419,28 +509,29 @@ func (l *lexer) scanName() token {
 			break
 		}
 
-		// Stop reading if we hit whitespace...
-		if isWhitespace(ch) {
-			l.backup()
-			break
-		}
-
-		// ...or anything that looks like an operator.
-		if lookupSymbol1(ch) > 0 || lookupSymbol2(ch) != nil {
+		if isWhitespace(ch) || lookupSymbol1(ch) > 0 || lookupSymbol2(ch) != nil {
 			l.backup()
 			break
 		}
 	}
 
-	t := l.newToken(typeName)
+	if l.current == start {
+		if isVar {
+			return token{Type: typeVariable, Value: "", Position: pos}
+		}
+		return token{Type: typeError, Value: "empty name", Position: pos}
+	}
 
+	value := l.input[start:l.current]
 	if isVar {
-		t.Type = typeVariable
-	} else if tt := lookupKeyword(t.Value); tt > 0 {
-		t.Type = tt
+		return token{Type: typeVariable, Value: value, Position: pos + 1}
 	}
 
-	return t
+	if tt := lookupKeyword(value); tt > 0 {
+		return token{Type: tt, Value: value, Position: pos}
+	}
+
+	return token{Type: typeName, Value: value, Position: pos}
 }
 
 func (l *lexer) eof() token {
@@ -486,11 +577,13 @@ func (l *lexer) nextRune() rune {
 }
 
 func (l *lexer) backup() {
-	// TODO: Support more than one backup operation.
-	// TODO: Store current rune so that when nextRune
-	// is called again, we don't need to repeat the call
-	// to DecodeRuneInString.
 	l.current -= l.width
+}
+
+func (l *lexer) peek() rune {
+	r := l.nextRune()
+	l.backup()
+	return r
 }
 
 func (l *lexer) ignore() {
@@ -526,7 +619,13 @@ func (l *lexer) acceptAll(isValid func(rune) bool) bool {
 }
 
 func (l *lexer) skipWhitespace() {
-	l.acceptAll(isWhitespace)
+	for {
+		ch := l.peek()
+		if !isWhitespace(ch) {
+			break
+		}
+		l.nextRune()
+	}
 	l.ignore()
 }
 
@@ -540,12 +639,7 @@ func isWhitespace(r rune) bool {
 }
 
 func isRegexFlag(r rune) bool {
-	switch r {
-	case 'i', 'm', 's':
-		return true
-	default:
-		return false
-	}
+	return r == 'i' || r == 'I' || r == 'm' || r == 's'
 }
 
 func isDigit(r rune) bool {
@@ -566,6 +660,43 @@ func isOctalDigit(r rune) bool {
 
 func isHexDigit(r rune) bool {
 	return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')
+}
+
+func (l *lexer) scanComment(allowRegex bool) token {
+	startPos := l.start
+	next := l.peek()
+	l.nextRune() // consume first '/'
+
+	if next == '*' {
+		l.nextRune() // consume '*'
+		depth := 1
+		for depth > 0 {
+			r := l.nextRune()
+			if r == eof {
+				return token{Type: typeError, Value: "unterminated comment (no closing */)", Position: startPos}
+			}
+			if r == '*' && l.peek() == '/' {
+				l.nextRune() // consume '/'
+				depth--
+			} else if r == '/' && l.peek() == '*' {
+				l.nextRune() // consume '*'
+				depth++
+			}
+		}
+	} else if next == '/' {
+		l.nextRune() // consume second '/'
+		for {
+			r := l.nextRune()
+			if r == '\n' || r == eof {
+				break
+			}
+		}
+	}
+
+	l.start = startPos
+	l.ignore()
+	l.skipWhitespace()
+	return l.next(allowRegex)
 }
 
 // symbolsAndKeywords maps operator token types back to their

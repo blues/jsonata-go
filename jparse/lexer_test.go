@@ -89,11 +89,61 @@ func TestLexerComments(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("got tokens = %v, want %v", got, tt.want)
 			}
-			if !reflect.DeepEqual(l.Error, tt.wantErr) {
-				t.Errorf("got error = %v, want %v", l.Error, tt.wantErr)
+			if !reflect.DeepEqual(l.err, tt.wantErr) {
+				t.Errorf("got error = %v, want %v", l.err, tt.wantErr)
 			}
 		})
 	}
+}
+
+func TestLexerOperators(t *testing.T) {
+	testLexer(t, []lexerTestCase{
+		{
+			Input: "10 % 3 + Account.%.name",
+			AllowRegex: true,
+			Tokens: []token{
+				tok(typeNumber, "10", 0),
+				tok(typeMod, "%", 3),
+				tok(typeNumber, "3", 5),
+				tok(typePlus, "+", 7),
+				tok(typeName, "Account", 9),
+				tok(typeDot, ".", 16),
+				tok(typeParent, "%", 17),
+				tok(typeDot, ".", 18),
+				tok(typeName, "name", 19),
+			},
+		},
+		{
+			Input: "Orders@$O[%.Type='retail']",
+			AllowRegex: true,
+			Tokens: []token{
+				tok(typeName, "Orders", 0),
+				tok(typeCrossRef, "@", 6),
+				tok(typeVariable, "O", 8),
+				tok(typeBracketOpen, "[", 9),
+				tok(typeParent, "%", 10),
+				tok(typeDot, ".", 11),
+				tok(typeName, "Type", 12),
+				tok(typeEqual, "=", 16),
+				tok(typeString, "retail", 18),
+				tok(typeBracketClose, "]", 24),
+			},
+		},
+		{
+			Input: "Orders#$i[Position=$i]",
+			AllowRegex: true,
+			Tokens: []token{
+				tok(typeName, "Orders", 0),
+				tok(typePosition, "#", 6),
+				tok(typeVariable, "i", 8),
+				tok(typeBracketOpen, "[", 9),
+				tok(typeName, "Position", 10),
+				tok(typeEqual, "=", 18),
+				tok(typeVariable, "i", 20),
+				tok(typeBracketClose, "]", 21),
+			},
+		},
+	})
 }
 
 func TestLexerWhitespace(t *testing.T) {
@@ -261,6 +311,8 @@ func TestLexerStrings(t *testing.T) {
 		},
 	})
 }
+
+
 
 func TestLexerNumbers(t *testing.T) {
 	testLexer(t, []lexerTestCase{

@@ -6,7 +6,7 @@ package jsonata
 
 import (
 	"errors"
-	"math"
+
 	"reflect"
 	"strings"
 	"unicode/utf8"
@@ -140,7 +140,13 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		EvalContextHandler: contextHandlerReplace,
 	},
 	"formatNumber": {
-		Func:               jlib.FormatNumber,
+		Func: func(x float64, picture string, options ...interface{}) (string, error) {
+			var opt jtypes.OptionalValue
+			if len(options) > 0 {
+				opt = jtypes.OptionalValue{Value: reflect.ValueOf(options[0])}
+			}
+			return jlib.FormatNumber(x, picture, opt)
+		},
 		UndefinedHandler:   defaultUndefinedHandler,
 		EvalContextHandler: contextHandlerFormatNumber,
 	},
@@ -188,17 +194,27 @@ var baseEnv = initBaseEnv(map[string]Extension{
 		EvalContextHandler: defaultContextHandler,
 	},
 	"abs": {
-		Func:               math.Abs,
-		UndefinedHandler:   defaultUndefinedHandler,
-		EvalContextHandler: defaultContextHandler,
-	},
-	"floor": {
-		Func:               math.Floor,
+		Func:               jlib.Abs,
 		UndefinedHandler:   defaultUndefinedHandler,
 		EvalContextHandler: defaultContextHandler,
 	},
 	"ceil": {
-		Func:               math.Ceil,
+		Func:               jlib.Ceil,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+	"floor": {
+		Func:               jlib.Floor,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+	"formatInteger": {
+		Func:               jlib.FormatInteger,
+		UndefinedHandler:   defaultUndefinedHandler,
+		EvalContextHandler: defaultContextHandler,
+	},
+	"parseInteger": {
+		Func:               jlib.ParseInteger,
 		UndefinedHandler:   defaultUndefinedHandler,
 		EvalContextHandler: defaultContextHandler,
 	},

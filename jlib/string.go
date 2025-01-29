@@ -13,7 +13,6 @@ import (
 	"net/url"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -364,19 +363,9 @@ func replaceMatchFunc(src string, fn jtypes.Callable, repl StringCallable, limit
 
 var defaultDecimalFormat = jxpath.NewDecimalFormat()
 
-// FormatNumber converts a number to a string, formatted according
-// to the given picture string. See the XPath function format-number
-// for the syntax of the picture string.
-//
-// https://www.w3.org/TR/xpath-functions-31/#formatting-numbers
-//
-// The optional third argument defines various formatting options
-// such as the decimal separator and grouping separator. See the
-// XPath documentation for details.
-//
-// https://www.w3.org/TR/xpath-functions-31/#defining-decimal-format
-func FormatNumber(value float64, picture string, options jtypes.OptionalValue) (string, error) {
-
+// formatNumberWithPicture formats a number according to XPath picture string format.
+// This is an internal helper used by string formatting functions.
+func formatNumberWithPicture(value float64, picture string, options jtypes.OptionalValue) (string, error) {
 	if !options.IsSet() {
 		return jxpath.FormatNumber(value, picture, defaultDecimalFormat)
 	}
@@ -395,11 +384,9 @@ func FormatNumber(value float64, picture string, options jtypes.OptionalValue) (
 }
 
 func newDecimalFormat(opts reflect.Value) (jxpath.DecimalFormat, error) {
-
 	format := jxpath.NewDecimalFormat()
 
 	for _, key := range opts.MapKeys() {
-
 		k, ok := jtypes.AsString(key)
 		if !ok {
 			return jxpath.DecimalFormat{}, fmt.Errorf("decimal format options must be a map of strings to strings")
@@ -419,7 +406,6 @@ func newDecimalFormat(opts reflect.Value) (jxpath.DecimalFormat, error) {
 }
 
 func updateDecimalFormat(format *jxpath.DecimalFormat, key string, value string) error {
-
 	switch key {
 	case "infinity":
 		format.Infinity = value
@@ -453,25 +439,7 @@ func updateDecimalFormat(format *jxpath.DecimalFormat, key string, value string)
 			return fmt.Errorf("unknown option %q", key)
 		}
 	}
-
 	return nil
-}
-
-// FormatBase returns the string representation of a number in the
-// optional base argument. If specified, the base must be between
-// 2 and 36. By default, FormatBase uses base 10.
-func FormatBase(value float64, base jtypes.OptionalFloat64) (string, error) {
-
-	radix := 10
-	if base.IsSet() {
-		radix = int(Round(base.Float64, jtypes.OptionalInt{}))
-	}
-
-	if radix < 2 || radix > 36 {
-		return "", fmt.Errorf("the second argument to formatBase must be between 2 and 36")
-	}
-
-	return strconv.FormatInt(int64(Round(value, jtypes.OptionalInt{})), radix), nil
 }
 
 // Base64Encode returns the base 64 encoding of a string.

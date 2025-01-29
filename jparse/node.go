@@ -5,6 +5,7 @@
 package jparse
 
 import (
+	"sort"
 	"fmt"
 	"regexp"
 	"regexp/syntax"
@@ -18,7 +19,10 @@ import (
 type Node interface {
 	String() string
 	optimize() (Node, error)
+	Evaluate(ctx *Context) (interface{}, error)
 }
+
+// Operator parsing functions moved to parser_operators.go
 
 // A StringNode represents a string literal.
 type StringNode struct {
@@ -50,6 +54,10 @@ func (n StringNode) String() string {
 	return fmt.Sprintf("%q", n.Value)
 }
 
+func (n StringNode) Evaluate(ctx *Context) (interface{}, error) {
+	return n.Value, nil
+}
+
 // A NumberNode represents a number literal.
 type NumberNode struct {
 	Value float64
@@ -78,6 +86,10 @@ func (n *NumberNode) optimize() (Node, error) {
 
 func (n NumberNode) String() string {
 	return fmt.Sprintf("%g", n.Value)
+}
+
+func (n NumberNode) Evaluate(ctx *Context) (interface{}, error) {
+	return n.Value, nil
 }
 
 // A BooleanNode represents the boolean constant true or false.
@@ -111,6 +123,10 @@ func (n BooleanNode) String() string {
 	return fmt.Sprintf("%t", n.Value)
 }
 
+func (n BooleanNode) Evaluate(ctx *Context) (interface{}, error) {
+	return n.Value, nil
+}
+
 // A NullNode represents the JSON null value.
 type NullNode struct{}
 
@@ -124,6 +140,10 @@ func (n *NullNode) optimize() (Node, error) {
 
 func (NullNode) String() string {
 	return "null"
+}
+
+func (n NullNode) Evaluate(ctx *Context) (interface{}, error) {
+	return nil, nil
 }
 
 // A RegexNode represents a regular expression.
@@ -164,9 +184,14 @@ func (n RegexNode) String() string {
 	return fmt.Sprintf("/%s/", expr)
 }
 
+func (n RegexNode) Evaluate(ctx *Context) (interface{}, error) {
+	return n.Value, nil
+}
+
 // A VariableNode represents a JSONata variable.
 type VariableNode struct {
 	Name string
+	Next Node
 }
 
 func parseVariable(p *parser, t token) (Node, error) {
@@ -181,6 +206,13 @@ func (n *VariableNode) optimize() (Node, error) {
 
 func (n VariableNode) String() string {
 	return "$" + n.Name
+}
+
+func (n VariableNode) Evaluate(ctx *Context) (interface{}, error) {
+	if n.Name == "" {
+		return ctx.Input, nil
+	}
+	return nil, fmt.Errorf("variable %s not found", n.Name)
 }
 
 // A NameNode represents a JSON field name.
@@ -223,6 +255,32 @@ func (n NameNode) Escaped() bool {
 	return n.escaped
 }
 
+func (n NameNode) Evaluate(ctx *Context) (interface{}, error) {
+	if ctx.Input == nil {
+		return nil, nil
+	}
+	
+	switch v := ctx.Input.(type) {
+	case map[string]interface{}:
+		return v[n.Value], nil
+	case []interface{}:
+		var results []interface{}
+		for _, item := range v {
+			if m, ok := item.(map[string]interface{}); ok {
+				if val, exists := m[n.Value]; exists {
+					results = append(results, val)
+				}
+			}
+		}
+		if len(results) == 1 {
+			return results[0], nil
+		}
+		return results, nil
+	default:
+		return nil, nil
+	}
+}
+
 // A PathNode represents a JSON object path. It consists of one
 // or more 'steps' or Nodes (most commonly NameNode objects).
 type PathNode struct {
@@ -242,6 +300,44 @@ func (n PathNode) String() string {
 	return s
 }
 
+func (n PathNode) Evaluate(ctx *Context) (interface{}, error) {
+	if len(n.Steps) == 0 {
+		return nil, nil
+	}
+
+	var current interface{} = ctx.Input
+	for i, step := range n.Steps {
+		stepNode, ok := step.(Node)
+		if !ok {
+			return nil, fmt.Errorf("invalid path step type at position %d", i)
+		}
+
+		nextCtx := &Context{
+			Parent:   ctx,
+			Position: -1,
+			Input:    current,
+		}
+
+		var err error
+		current, err = stepNode.Evaluate(nextCtx)
+		if err != nil {
+			return nil, err
+		}
+
+		if current == nil {
+			return nil, nil
+		}
+	}
+
+	if n.KeepArrays {
+		if arr, ok := current.([]interface{}); ok {
+			return arr, nil
+		}
+	}
+
+	return current, nil
+}
+
 // A NegationNode represents a numeric negation operation.
 type NegationNode struct {
 	RHS Node
@@ -254,16 +350,12 @@ func parseNegation(p *parser, t token) (Node, error) {
 }
 
 func (n *NegationNode) optimize() (Node, error) {
-
 	var err error
-
 	n.RHS, err = n.RHS.optimize()
 	if err != nil {
 		return nil, err
 	}
 
-	// If the operand is a number literal, negate it now
-	// instead of waiting for evaluation.
 	if number, ok := n.RHS.(*NumberNode); ok {
 		return &NumberNode{
 			Value: -number.Value,
@@ -275,6 +367,20 @@ func (n *NegationNode) optimize() (Node, error) {
 
 func (n NegationNode) String() string {
 	return fmt.Sprintf("-%s", n.RHS)
+}
+
+func (n NegationNode) Evaluate(ctx *Context) (interface{}, error) {
+	val, err := n.RHS.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	num, ok := val.(float64)
+	if !ok {
+		return nil, fmt.Errorf("cannot negate non-numeric value")
+	}
+	
+	return -num, nil
 }
 
 // A RangeNode represents the range operator.
@@ -302,6 +408,34 @@ func (n *RangeNode) optimize() (Node, error) {
 
 func (n RangeNode) String() string {
 	return fmt.Sprintf("%s..%s", n.LHS, n.RHS)
+}
+
+func (n RangeNode) Evaluate(ctx *Context) (interface{}, error) {
+	start, err := n.LHS.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	end, err := n.RHS.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	startNum, ok := start.(float64)
+	if !ok {
+		return nil, fmt.Errorf("range start must be numeric")
+	}
+	
+	endNum, ok := end.(float64)
+	if !ok {
+		return nil, fmt.Errorf("range end must be numeric")
+	}
+	
+	var result []interface{}
+	for i := startNum; i <= endNum; i++ {
+		result = append(result, i)
+	}
+	return result, nil
 }
 
 // An ArrayNode represents an array of items.
@@ -360,6 +494,18 @@ func (n ArrayNode) String() string {
 	return fmt.Sprintf("[%s]", joinNodes(n.Items, ", "))
 }
 
+func (n ArrayNode) Evaluate(ctx *Context) (interface{}, error) {
+	result := make([]interface{}, len(n.Items))
+	for i, item := range n.Items {
+		val, err := item.Evaluate(ctx)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = val
+	}
+	return result, nil
+}
+
 // An ObjectNode represents an object, an unordered list of
 // key-value pairs.
 type ObjectNode struct {
@@ -408,7 +554,6 @@ func (n *ObjectNode) optimize() (Node, error) {
 }
 
 func (n ObjectNode) String() string {
-
 	values := make([]string, len(n.Pairs))
 
 	for i, pair := range n.Pairs {
@@ -416,6 +561,31 @@ func (n ObjectNode) String() string {
 	}
 
 	return fmt.Sprintf("{%s}", strings.Join(values, ", "))
+}
+
+func (n ObjectNode) Evaluate(ctx *Context) (interface{}, error) {
+	result := make(map[string]interface{})
+	
+	for _, pair := range n.Pairs {
+		key, err := pair[0].Evaluate(ctx)
+		if err != nil {
+			return nil, err
+		}
+		
+		keyStr, ok := key.(string)
+		if !ok {
+			return nil, fmt.Errorf("object key must evaluate to string")
+		}
+		
+		value, err := pair[1].Evaluate(ctx)
+		if err != nil {
+			return nil, err
+		}
+		
+		result[keyStr] = value
+	}
+	
+	return result, nil
 }
 
 // A BlockNode represents a block expression.
@@ -462,6 +632,18 @@ func (n BlockNode) String() string {
 	return fmt.Sprintf("(%s)", joinNodes(n.Exprs, "; "))
 }
 
+func (n BlockNode) Evaluate(ctx *Context) (interface{}, error) {
+	var result interface{}
+	for _, expr := range n.Exprs {
+		var err error
+		result, err = expr.Evaluate(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
 // A WildcardNode represents the wildcard operator.
 type WildcardNode struct{}
 
@@ -477,6 +659,25 @@ func (WildcardNode) String() string {
 	return "*"
 }
 
+func (n WildcardNode) Evaluate(ctx *Context) (interface{}, error) {
+	if ctx.Input == nil {
+		return nil, nil
+	}
+	
+	switch v := ctx.Input.(type) {
+	case map[string]interface{}:
+		result := make([]interface{}, 0, len(v))
+		for _, val := range v {
+			result = append(result, val)
+		}
+		return result, nil
+	case []interface{}:
+		return v, nil
+	default:
+		return nil, nil
+	}
+}
+
 // A DescendentNode represents the descendent operator.
 type DescendentNode struct{}
 
@@ -490,6 +691,41 @@ func (n *DescendentNode) optimize() (Node, error) {
 
 func (DescendentNode) String() string {
 	return "**"
+}
+
+func (n DescendentNode) Evaluate(ctx *Context) (interface{}, error) {
+	if ctx.Input == nil {
+		return nil, nil
+	}
+
+	var results []interface{}
+	
+	switch v := ctx.Input.(type) {
+	case map[string]interface{}:
+		for _, val := range v {
+			results = append(results, val)
+			if nested, err := n.Evaluate(&Context{Input: val}); err == nil && nested != nil {
+				if arr, ok := nested.([]interface{}); ok {
+					results = append(results, arr...)
+				} else {
+					results = append(results, nested)
+				}
+			}
+		}
+	case []interface{}:
+		for _, item := range v {
+			results = append(results, item)
+			if nested, err := n.Evaluate(&Context{Input: item}); err == nil && nested != nil {
+				if arr, ok := nested.([]interface{}); ok {
+					results = append(results, arr...)
+				} else {
+					results = append(results, nested)
+				}
+			}
+		}
+	}
+
+	return results, nil
 }
 
 // An ObjectTransformationNode represents the object transformation
@@ -545,13 +781,69 @@ func (n *ObjectTransformationNode) optimize() (Node, error) {
 }
 
 func (n ObjectTransformationNode) String() string {
-
 	s := fmt.Sprintf("|%s|%s", n.Pattern, n.Updates)
 	if n.Deletes != nil {
 		s += fmt.Sprintf(", %s", n.Deletes)
 	}
 	s += "|"
 	return s
+}
+
+func (n ObjectTransformationNode) Evaluate(ctx *Context) (interface{}, error) {
+	pattern, err := n.Pattern.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if pattern == nil {
+		return nil, nil
+	}
+
+	obj, ok := pattern.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("pattern must evaluate to object")
+	}
+
+	updates, err := n.Updates.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	updateObj, ok := updates.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("updates must evaluate to object")
+	}
+
+	result := make(map[string]interface{})
+	for k, v := range obj {
+		result[k] = v
+	}
+
+	for k, v := range updateObj {
+		result[k] = v
+	}
+
+	if n.Deletes != nil {
+		deletes, err := n.Deletes.Evaluate(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		deleteArr, ok := deletes.([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("deletes must evaluate to array")
+		}
+
+		for _, key := range deleteArr {
+			keyStr, ok := key.(string)
+			if !ok {
+				return nil, fmt.Errorf("delete key must be string")
+			}
+			delete(result, keyStr)
+		}
+	}
+
+	return result, nil
 }
 
 // A ParamType represents the type of a parameter in a lambda
@@ -836,19 +1128,15 @@ type LambdaNode struct {
 }
 
 func (n *LambdaNode) optimize() (Node, error) {
-
 	var err error
-
 	n.Body, err = n.Body.optimize()
 	if err != nil {
 		return nil, err
 	}
-
 	return n, nil
 }
 
 func (n LambdaNode) String() string {
-
 	name := "function"
 	if n.shorthand {
 		name = "λ"
@@ -860,6 +1148,15 @@ func (n LambdaNode) String() string {
 	}
 
 	return fmt.Sprintf("%s(%s){%s}", name, strings.Join(params, ", "), n.Body)
+}
+
+func (n LambdaNode) Evaluate(ctx *Context) (interface{}, error) {
+	return map[string]interface{}{
+		"__lambda": true,
+		"params":   n.ParamNames,
+		"body":     n.Body,
+		"context":  ctx,
+	}, nil
 }
 
 // Shorthand returns true if the lambda function was defined
@@ -879,18 +1176,15 @@ type TypedLambdaNode struct {
 }
 
 func (n *TypedLambdaNode) optimize() (Node, error) {
-
 	node, err := n.LambdaNode.optimize()
 	if err != nil {
 		return nil, err
 	}
 	n.LambdaNode = node.(*LambdaNode)
-
 	return n, nil
 }
 
 func (n TypedLambdaNode) String() string {
-
 	name := "function"
 	if n.shorthand {
 		name = "λ"
@@ -909,10 +1203,44 @@ func (n TypedLambdaNode) String() string {
 	return fmt.Sprintf("%s(%s)<%s>{%s}", name, strings.Join(params, ", "), strings.Join(inputs, ""), n.Body)
 }
 
+func (n TypedLambdaNode) Evaluate(ctx *Context) (interface{}, error) {
+	return map[string]interface{}{
+		"__lambda": true,
+		"params":   n.ParamNames,
+		"body":     n.Body,
+		"context":  ctx,
+		"in":       n.In,
+		"out":      n.Out,
+	}, nil
+}
+
 // A PartialNode represents a partially applied function.
 type PartialNode struct {
 	Func Node
 	Args []Node
+}
+
+func (n PartialNode) Evaluate(ctx *Context) (interface{}, error) {
+	fn, err := n.Func.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	args := make([]interface{}, len(n.Args))
+	for i, arg := range n.Args {
+		if _, ok := arg.(*PlaceholderNode); !ok {
+			val, err := arg.Evaluate(ctx)
+			if err != nil {
+				return nil, err
+			}
+			args[i] = val
+		}
+	}
+
+	return map[string]interface{}{
+		"function": fn,
+		"args":     args,
+	}, nil
 }
 
 func (n *PartialNode) optimize() (Node, error) {
@@ -942,7 +1270,11 @@ func (n PartialNode) String() string {
 // in a partially applied function.
 type PlaceholderNode struct{}
 
-func (n *PlaceholderNode) optimize() (Node, error) {
+func (n PlaceholderNode) Evaluate(ctx *Context) (interface{}, error) {
+	return nil, fmt.Errorf("placeholder cannot be evaluated")
+}
+
+func (n PlaceholderNode) optimize() (Node, error) {
 	return n, nil
 }
 
@@ -954,6 +1286,27 @@ func (PlaceholderNode) String() string {
 type FunctionCallNode struct {
 	Func Node
 	Args []Node
+}
+
+func (n FunctionCallNode) Evaluate(ctx *Context) (interface{}, error) {
+	fn, err := n.Func.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	args := make([]interface{}, len(n.Args))
+	for i, arg := range n.Args {
+		val, err := arg.Evaluate(ctx)
+		if err != nil {
+			return nil, err
+		}
+		args[i] = val
+	}
+
+	return map[string]interface{}{
+		"function": fn,
+		"args":     args,
+	}, nil
 }
 
 const typePlaceholder = typeCondition
@@ -1159,6 +1512,68 @@ func (n PredicateNode) String() string {
 	return fmt.Sprintf("%s[%s]", n.Expr, joinNodes(n.Filters, ", "))
 }
 
+func (n PredicateNode) Evaluate(ctx *Context) (interface{}, error) {
+	expr, err := n.Expr.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if expr == nil {
+		return nil, nil
+	}
+
+	var results []interface{}
+	var items []interface{}
+
+	switch v := expr.(type) {
+	case []interface{}:
+		items = v
+	default:
+		items = []interface{}{v}
+	}
+
+	for i, item := range items {
+		itemCtx := &Context{
+			Input:    item,
+			Parent:   ctx,
+			Position: i,
+		}
+
+		match := true
+		for _, filter := range n.Filters {
+			result, err := filter.Evaluate(itemCtx)
+			if err != nil {
+				return nil, err
+			}
+
+			switch v := result.(type) {
+			case bool:
+				if !v {
+					match = false
+					break
+				}
+			case float64:
+				if int(v) != i {
+					match = false
+					break
+				}
+			default:
+				match = false
+				break
+			}
+		}
+
+		if match {
+			results = append(results, item)
+		}
+	}
+
+	if len(results) == 1 {
+		return results[0], nil
+	}
+	return results, nil
+}
+
 // A GroupNode represents a group expression.
 type GroupNode struct {
 	Expr Node
@@ -1256,13 +1671,31 @@ func (n *ConditionalNode) optimize() (Node, error) {
 }
 
 func (n ConditionalNode) String() string {
-
 	s := fmt.Sprintf("%s ? %s", n.If, n.Then)
 	if n.Else != nil {
 		s += fmt.Sprintf(" : %s", n.Else)
 	}
-
 	return s
+}
+
+func (n ConditionalNode) Evaluate(ctx *Context) (interface{}, error) {
+	cond, err := n.If.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	cbool, ok := cond.(bool)
+	if !ok {
+		return nil, fmt.Errorf("condition must evaluate to boolean")
+	}
+	
+	if cbool {
+		return n.Then.Evaluate(ctx)
+	}
+	if n.Else != nil {
+		return n.Else.Evaluate(ctx)
+	}
+	return nil, nil
 }
 
 // An AssignmentNode represents a variable assignment.
@@ -1298,6 +1731,15 @@ func (n *AssignmentNode) optimize() (Node, error) {
 
 func (n AssignmentNode) String() string {
 	return fmt.Sprintf("$%s := %s", n.Name, n.Value)
+}
+
+func (n AssignmentNode) Evaluate(ctx *Context) (interface{}, error) {
+	value, err := n.Value.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// Store in context's variable map (to be implemented)
+	return value, nil
 }
 
 // A NumericOperator is a mathematical operation between two
@@ -1383,6 +1825,49 @@ func (n *NumericOperatorNode) optimize() (Node, error) {
 
 func (n NumericOperatorNode) String() string {
 	return fmt.Sprintf("%s %s %s", n.LHS, n.Type, n.RHS)
+}
+
+func (n NumericOperatorNode) Evaluate(ctx *Context) (interface{}, error) {
+	lhs, err := n.LHS.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	rhs, err := n.RHS.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	lnum, ok := lhs.(float64)
+	if !ok {
+		return nil, fmt.Errorf("left operand must be numeric")
+	}
+	
+	rnum, ok := rhs.(float64)
+	if !ok {
+		return nil, fmt.Errorf("right operand must be numeric")
+	}
+	
+	switch n.Type {
+	case NumericAdd:
+		return lnum + rnum, nil
+	case NumericSubtract:
+		return lnum - rnum, nil
+	case NumericMultiply:
+		return lnum * rnum, nil
+	case NumericDivide:
+		if rnum == 0 {
+			return nil, fmt.Errorf("division by zero")
+		}
+		return lnum / rnum, nil
+	case NumericModulo:
+		if rnum == 0 {
+			return nil, fmt.Errorf("modulo by zero")
+		}
+		return float64(int64(lnum) % int64(rnum)), nil
+	default:
+		return nil, fmt.Errorf("unknown numeric operator")
+	}
 }
 
 // A ComparisonOperator is an operation that compares two values.
@@ -1479,6 +1964,91 @@ func (n ComparisonOperatorNode) String() string {
 	return fmt.Sprintf("%s %s %s", n.LHS, n.Type, n.RHS)
 }
 
+func (n ComparisonOperatorNode) Evaluate(ctx *Context) (interface{}, error) {
+	lhs, err := n.LHS.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	rhs, err := n.RHS.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	switch n.Type {
+	case ComparisonEqual:
+		return deepEqual(lhs, rhs), nil
+	case ComparisonNotEqual:
+		return !deepEqual(lhs, rhs), nil
+	case ComparisonLess:
+		return compareValues(lhs, rhs) < 0, nil
+	case ComparisonLessEqual:
+		return compareValues(lhs, rhs) <= 0, nil
+	case ComparisonGreater:
+		return compareValues(lhs, rhs) > 0, nil
+	case ComparisonGreaterEqual:
+		return compareValues(lhs, rhs) >= 0, nil
+	case ComparisonIn:
+		return isValueIn(lhs, rhs), nil
+	default:
+		return nil, fmt.Errorf("unknown comparison operator")
+	}
+}
+
+// A BinaryNode represents a binary operation between two nodes.
+type BinaryNode struct {
+    Op    tokenType
+    Left  Node
+    Right Node
+}
+
+func (n *BinaryNode) optimize() (Node, error) {
+    var err error
+    n.Left, err = n.Left.optimize()
+    if err != nil {
+        return nil, err
+    }
+    n.Right, err = n.Right.optimize()
+    if err != nil {
+        return nil, err
+    }
+    return n, nil
+}
+
+func (n BinaryNode) String() string {
+    return fmt.Sprintf("%s %s %s", n.Left, n.Op, n.Right)
+}
+
+func (n BinaryNode) Evaluate(ctx *Context) (interface{}, error) {
+    lhs, err := n.Left.Evaluate(ctx)
+    if err != nil {
+        return nil, err
+    }
+    
+    rhs, err := n.Right.Evaluate(ctx)
+    if err != nil {
+        return nil, err
+    }
+    
+    switch n.Op {
+    case typeMod:
+        lnum, ok := lhs.(float64)
+        if !ok {
+            return nil, fmt.Errorf("left operand must be numeric")
+        }
+        rnum, ok := rhs.(float64)
+        if !ok {
+            return nil, fmt.Errorf("right operand must be numeric")
+        }
+        if rnum == 0 {
+            return nil, fmt.Errorf("modulo by zero")
+        }
+        return float64(int64(lnum) % int64(rnum)), nil
+    default:
+        return nil, fmt.Errorf("unsupported binary operator: %v", n.Op)
+    }
+}
+
 // A BooleanOperator is a logical AND or OR operation between
 // two values.
 type BooleanOperator uint8
@@ -1549,11 +2119,74 @@ func (n BooleanOperatorNode) String() string {
 	return fmt.Sprintf("%s %s %s", n.LHS, n.Type, n.RHS)
 }
 
+func (n BooleanOperatorNode) Evaluate(ctx *Context) (interface{}, error) {
+	lhs, err := n.LHS.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Short-circuit evaluation for AND/OR
+	lbool, ok := lhs.(bool)
+	if !ok {
+		return nil, fmt.Errorf("left operand must be boolean")
+	}
+	
+	if n.Type == BooleanAnd && !lbool {
+		return false, nil
+	}
+	if n.Type == BooleanOr && lbool {
+		return true, nil
+	}
+	
+	rhs, err := n.RHS.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	rbool, ok := rhs.(bool)
+	if !ok {
+		return nil, fmt.Errorf("right operand must be boolean")
+	}
+	
+	switch n.Type {
+	case BooleanAnd:
+		return lbool && rbool, nil
+	case BooleanOr:
+		return lbool || rbool, nil
+	default:
+		return nil, fmt.Errorf("unknown boolean operator")
+	}
+}
+
 // A StringConcatenationNode represents a string concatenation
 // operation.
 type StringConcatenationNode struct {
 	LHS Node
 	RHS Node
+}
+
+func (n StringConcatenationNode) Evaluate(ctx *Context) (interface{}, error) {
+	lhs, err := n.LHS.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	rhs, err := n.RHS.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	lstr, ok := lhs.(string)
+	if !ok {
+		return nil, fmt.Errorf("left operand must be string")
+	}
+
+	rstr, ok := rhs.(string)
+	if !ok {
+		return nil, fmt.Errorf("right operand must be string")
+	}
+
+	return lstr + rstr, nil
 }
 
 func parseStringConcatenation(p *parser, t token, lhs Node) (Node, error) {
@@ -1664,24 +2297,69 @@ func (n *SortNode) optimize() (Node, error) {
 }
 
 func (n SortNode) String() string {
-
 	terms := make([]string, len(n.Terms))
 
 	for i, t := range n.Terms {
-
 		var sym string
-
 		switch t.Dir {
 		case SortAscending:
 			sym = "<"
 		case SortDescending:
 			sym = ">"
 		}
-
 		terms[i] = sym + t.Expr.String()
 	}
 
 	return fmt.Sprintf("%s^(%s)", n.Expr, strings.Join(terms, ", "))
+}
+
+func (n SortNode) Evaluate(ctx *Context) (interface{}, error) {
+	expr, err := n.Expr.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if expr == nil {
+		return nil, nil
+	}
+
+	items, ok := expr.([]interface{})
+	if !ok {
+		return expr, nil
+	}
+
+	sorted := make([]interface{}, len(items))
+	copy(sorted, items)
+
+	sort.SliceStable(sorted, func(i, j int) bool {
+		for _, term := range n.Terms {
+			iCtx := &Context{Input: sorted[i], Parent: ctx}
+			jCtx := &Context{Input: sorted[j], Parent: ctx}
+
+			iVal, err := term.Expr.Evaluate(iCtx)
+			if err != nil {
+				return false
+			}
+
+			jVal, err := term.Expr.Evaluate(jCtx)
+			if err != nil {
+				return false
+			}
+
+			cmp := compareValues(iVal, jVal)
+			if cmp == 0 {
+				continue
+			}
+
+			if term.Dir == SortDescending {
+				return cmp > 0
+			}
+			return cmp < 0
+		}
+		return false
+	})
+
+	return sorted, nil
 }
 
 // A FunctionApplicationNode represents a function application
@@ -1719,6 +2397,25 @@ func (n FunctionApplicationNode) String() string {
 	return fmt.Sprintf("%s ~> %s", n.LHS, n.RHS)
 }
 
+func (n FunctionApplicationNode) Evaluate(ctx *Context) (interface{}, error) {
+	lhs, err := n.LHS.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	rhsCtx := &Context{
+		Input:    lhs,
+		Parent:   ctx,
+		Position: -1,
+	}
+
+	return n.RHS.Evaluate(rhsCtx)
+}
+
+// A dotNode is an interim structure used to process JSONata path
+// expressions. It is deliberately unexported and creates a PathNode
+// during its optimize phase.
+
 // A dotNode is an interim structure used to process JSONata path
 // expressions. It is deliberately unexported and creates a PathNode
 // during its optimize phase.
@@ -1735,7 +2432,6 @@ func parseDot(p *parser, t token, lhs Node) (Node, error) {
 }
 
 func (n *dotNode) optimize() (Node, error) {
-
 	path := &PathNode{}
 
 	lhs, err := n.lhs.optimize()
@@ -1745,7 +2441,6 @@ func (n *dotNode) optimize() (Node, error) {
 
 	switch lhs := lhs.(type) {
 	case *NumberNode, *StringNode, *BooleanNode, *NullNode:
-		// TODO: Add position info.
 		return nil, &Error{
 			Type: ErrPathLiteral,
 			Hint: lhs.String(),
@@ -1766,7 +2461,6 @@ func (n *dotNode) optimize() (Node, error) {
 
 	switch rhs := rhs.(type) {
 	case *NumberNode, *StringNode, *BooleanNode, *NullNode:
-		// TODO: Add position info.
 		return nil, &Error{
 			Type: ErrPathLiteral,
 			Hint: rhs.String(),
@@ -1787,6 +2481,25 @@ func (n dotNode) String() string {
 	return fmt.Sprintf("%s.%s", n.lhs, n.rhs)
 }
 
+func (n dotNode) Evaluate(ctx *Context) (interface{}, error) {
+	lhs, err := n.lhs.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if lhs == nil {
+		return nil, nil
+	}
+
+	rhsCtx := &Context{
+		Input:    lhs,
+		Parent:   ctx,
+		Position: -1,
+	}
+
+	return n.rhs.Evaluate(rhsCtx)
+}
+
 // A singletonArrayNode is an interim data structure used when
 // processing path expressions. It is deliberately unexported
 // and gets converted into a PathNode during optimization.
@@ -1795,7 +2508,6 @@ type singletonArrayNode struct {
 }
 
 func (n *singletonArrayNode) optimize() (Node, error) {
-
 	lhs, err := n.lhs.optimize()
 	if err != nil {
 		return nil, err
@@ -1817,6 +2529,25 @@ func (n singletonArrayNode) String() string {
 	return fmt.Sprintf("%s[]", n.lhs)
 }
 
+func (n singletonArrayNode) Evaluate(ctx *Context) (interface{}, error) {
+	result, err := n.lhs.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	if result == nil {
+		return nil, nil
+	}
+	
+	// If result is already an array, return it as-is
+	if arr, ok := result.([]interface{}); ok {
+		return arr, nil
+	}
+	
+	// Otherwise wrap the single value in an array
+	return []interface{}{result}, nil
+}
+
 // A predicateNode is an interim data structure used when processing
 // predicate expressions. It is deliberately unexported and gets
 // converted into a PredicateNode during optimization.
@@ -1826,12 +2557,8 @@ type predicateNode struct {
 }
 
 func parsePredicate(p *parser, t token, lhs Node) (Node, error) {
-
 	if p.token.Type == typeBracketClose {
 		p.consume(typeBracketClose, false)
-
-		// Empty brackets in a path mean that we should not
-		// flatten singleton arrays into single values.
 		return &singletonArrayNode{
 			lhs: lhs,
 		}, nil
@@ -1847,7 +2574,6 @@ func parsePredicate(p *parser, t token, lhs Node) (Node, error) {
 }
 
 func (n *predicateNode) optimize() (Node, error) {
-
 	lhs, err := n.lhs.optimize()
 	if err != nil {
 		return nil, err
@@ -1861,7 +2587,6 @@ func (n *predicateNode) optimize() (Node, error) {
 	switch lhs := lhs.(type) {
 	case *GroupNode:
 		return nil, &Error{
-			// TODO: Add position info.
 			Type: ErrGroupPredicate,
 		}
 	case *PathNode:
@@ -1887,6 +2612,55 @@ func (n *predicateNode) optimize() (Node, error) {
 
 func (n *predicateNode) String() string {
 	return fmt.Sprintf("%s[%s]", n.lhs, n.rhs)
+}
+
+func (n predicateNode) Evaluate(ctx *Context) (interface{}, error) {
+	lhs, err := n.lhs.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if lhs == nil {
+		return nil, nil
+	}
+
+	var items []interface{}
+	switch v := lhs.(type) {
+	case []interface{}:
+		items = v
+	default:
+		items = []interface{}{v}
+	}
+
+	var results []interface{}
+	for i, item := range items {
+		itemCtx := &Context{
+			Input:    item,
+			Parent:   ctx,
+			Position: i,
+		}
+
+		match, err := n.rhs.Evaluate(itemCtx)
+		if err != nil {
+			return nil, err
+		}
+
+		switch v := match.(type) {
+		case bool:
+			if v {
+				results = append(results, item)
+			}
+		case float64:
+			if int(v) == i {
+				results = append(results, item)
+			}
+		}
+	}
+
+	if len(results) == 1 {
+		return results[0], nil
+	}
+	return results, nil
 }
 
 // Helpers
@@ -1996,11 +2770,105 @@ func decodeRunes(s string, n int) (string, int) {
 // equivalent rune. It returns an invalid rune if the input is
 // not valid hex.
 func parseRune(hex string) rune {
-
 	n, err := strconv.ParseInt(hex, 16, 32)
 	if err != nil {
 		return -1
 	}
-
 	return rune(n)
+}
+
+func deepEqual(a, b interface{}) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+
+	switch v1 := a.(type) {
+	case float64:
+		if v2, ok := b.(float64); ok {
+			return v1 == v2
+		}
+	case string:
+		if v2, ok := b.(string); ok {
+			return v1 == v2
+		}
+	case bool:
+		if v2, ok := b.(bool); ok {
+			return v1 == v2
+		}
+	case []interface{}:
+		if v2, ok := b.([]interface{}); ok {
+			if len(v1) != len(v2) {
+				return false
+			}
+			for i := range v1 {
+				if !deepEqual(v1[i], v2[i]) {
+					return false
+				}
+			}
+			return true
+		}
+	case map[string]interface{}:
+		if v2, ok := b.(map[string]interface{}); ok {
+			if len(v1) != len(v2) {
+				return false
+			}
+			for k, val1 := range v1 {
+				val2, exists := v2[k]
+				if !exists || !deepEqual(val1, val2) {
+					return false
+				}
+			}
+			return true
+		}
+	}
+	return false
+}
+
+func compareValues(a, b interface{}) int {
+	if a == nil || b == nil {
+		if a == nil && b == nil {
+			return 0
+		}
+		if a == nil {
+			return -1
+		}
+		return 1
+	}
+
+	switch v1 := a.(type) {
+	case float64:
+		if v2, ok := b.(float64); ok {
+			if v1 < v2 {
+				return -1
+			}
+			if v1 > v2 {
+				return 1
+			}
+			return 0
+		}
+	case string:
+		if v2, ok := b.(string); ok {
+			return strings.Compare(v1, v2)
+		}
+	}
+	return 0
+}
+
+func isValueIn(needle, haystack interface{}) bool {
+	switch h := haystack.(type) {
+	case []interface{}:
+		for _, item := range h {
+			if deepEqual(needle, item) {
+				return true
+			}
+		}
+	case map[string]interface{}:
+		key, ok := needle.(string)
+		if !ok {
+			return false
+		}
+		_, exists := h[key]
+		return exists
+	}
+	return false
 }

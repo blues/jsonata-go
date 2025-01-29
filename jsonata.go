@@ -218,6 +218,109 @@ func (e *Expr) String() string {
 	return e.node.String()
 }
 
+// EvalString evaluates a JSONata expression string with optional context
+func EvalString(expr string, context ...interface{}) (interface{}, error) {
+	if expr == "" {
+		return nil, fmt.Errorf("empty expression string")
+	}
+
+	e, err := Compile(expr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid JSONata expression: %v", err)
+	}
+
+	var ctx interface{}
+	if len(context) > 0 {
+		ctx = context[0]
+	}
+
+	result, err := e.Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("evaluation error: %v", err)
+	}
+
+	return result, nil
+}
+
+// Assert evaluates a condition and returns an error if it's false
+func Assert(condition interface{}, message ...interface{}) (interface{}, error) {
+	if condition == nil {
+		return nil, fmt.Errorf("first argument of assert cannot be null")
+	}
+
+	cond, ok := jtypes.AsBool(reflect.ValueOf(condition))
+	if !ok {
+		return nil, fmt.Errorf("first argument of assert must be a boolean")
+	}
+
+	if !cond {
+		msg := "assertion failed"
+		if len(message) > 0 && message[0] != nil {
+			if str, ok := jtypes.AsString(reflect.ValueOf(message[0])); ok {
+				msg = str
+			}
+		}
+		return nil, fmt.Errorf(msg)
+	}
+
+	return true, nil
+}
+
+// Error creates an error with the given message
+func Error(message interface{}) (interface{}, error) {
+	if message == nil {
+		return nil, fmt.Errorf("error")
+	}
+
+	msg, ok := jtypes.AsString(reflect.ValueOf(message))
+	if !ok {
+		return nil, fmt.Errorf("argument of error must be a string")
+	}
+
+	return nil, fmt.Errorf(msg)
+}
+
+// Single ensures a sequence contains exactly one value
+func Single(values interface{}, message ...interface{}) (interface{}, error) {
+	if values == nil {
+		return nil, nil
+	}
+
+	v := reflect.ValueOf(values)
+	if !v.IsValid() {
+		return nil, nil
+	}
+
+	if !jtypes.IsArray(v) {
+		return values, nil
+	}
+
+	v = jtypes.Resolve(v)
+	length := v.Len()
+
+	if length == 0 {
+		msg := "sequence is empty"
+		if len(message) > 0 && message[0] != nil {
+			if str, ok := jtypes.AsString(reflect.ValueOf(message[0])); ok {
+				msg = str
+			}
+		}
+		return nil, fmt.Errorf(msg)
+	}
+
+	if length > 1 {
+		msg := "sequence has more than one value"
+		if len(message) > 0 && message[0] != nil {
+			if str, ok := jtypes.AsString(reflect.ValueOf(message[0])); ok {
+				msg = str
+			}
+		}
+		return nil, fmt.Errorf(msg)
+	}
+
+	return v.Index(0).Interface(), nil
+}
+
 func (e *Expr) updateRegistry(values map[string]reflect.Value) {
 
 	for name, v := range values {
