@@ -495,24 +495,14 @@ func (l *lexer) scanNumber() token {
 		return token{Type: typeNumber, Value: l.input[pos:l.current], Position: pos}
 	}
 
-	// Handle decimal point at start
-	if l.peek() == '.' {
-		l.nextRune()
-		if !l.acceptAll(isDigit) {
-			l.backup()
-			return token{Type: typeDot, Value: ".", Position: pos}
-		}
-		return token{Type: typeNumber, Value: l.input[pos:l.current], Position: pos}
-	}
-
-	// Handle decimal numbers
+	// Handle regular decimal numbers
 	hasDigits := l.acceptAll(isDigit)
 
-	// Handle decimal point after digits
+	// Handle decimal point
 	if l.acceptRune('.') {
-		if !l.acceptAll(isDigit) {
+		if !l.acceptAll(isDigit) && !hasDigits {
 			l.backup()
-			return token{Type: typeNumber, Value: l.input[pos : l.current-1], Position: pos}
+			return token{Type: typeDot, Value: ".", Position: pos}
 		}
 	}
 
@@ -524,7 +514,7 @@ func (l *lexer) scanNumber() token {
 		}
 	}
 
-	if !hasDigits && l.input[pos] != '.' {
+	if !hasDigits && !l.acceptAll(isDigit) {
 		return token{Type: typeError, Value: "invalid number literal", Position: pos}
 	}
 
