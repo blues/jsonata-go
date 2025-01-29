@@ -377,26 +377,46 @@ func (l *lexer) scanRegex(delim rune) token {
 // and returns a string token. The opening quote has already been
 // consumed.
 func (l *lexer) scanString(quote rune) token {
-Loop:
+	pos := l.start
+	l.nextRune() // consume opening quote
+	
+	var value strings.Builder
 	for {
-		switch l.nextRune() {
-		case quote:
-			break Loop
-		case '\\':
-			if r := l.nextRune(); r != eof {
-				break
-			}
-			fallthrough
-		case eof:
+		ch := l.nextRune()
+		if ch == eof {
 			return l.error(ErrUnterminatedString, string(quote))
 		}
+		if ch == quote {
+			break
+		}
+		if ch == '\\' {
+			ch = l.nextRune()
+			if ch == eof {
+				return l.error(ErrUnterminatedString, string(quote))
+			}
+			switch ch {
+			case 'n':
+				value.WriteRune('\n')
+			case 'r':
+				value.WriteRune('\r')
+			case 't':
+				value.WriteRune('\t')
+			case '"', '\'', '\\':
+				value.WriteRune(ch)
+			default:
+				value.WriteRune('\\')
+				value.WriteRune(ch)
+			}
+			continue
+		}
+		value.WriteRune(ch)
 	}
-
-	l.backup()
-	t := l.newToken(typeString)
-	l.acceptRune(quote)
-	l.ignore()
-	return t
+	
+	return token{
+		Type:     typeString,
+		Value:    value.String(),
+		Position: pos,
+	}
 }
 
 // scanNumber reads a number literal from the current position
