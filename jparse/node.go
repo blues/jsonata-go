@@ -306,7 +306,7 @@ func (n PathNode) Evaluate(ctx *Context) (interface{}, error) {
 	}
 
 	var current interface{} = ctx.Input
-	for i, step := range n.Steps {
+	for _, step := range n.Steps {
 		nextCtx := &Context{
 			Parent:   ctx,
 			Position: -1,
