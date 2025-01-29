@@ -30,6 +30,9 @@ type StringNode struct {
 }
 
 func parseString(p *parser, t token) (Node, error) {
+	if t.Value == "" {
+		return nil, newError(ErrSyntaxError, t)
+	}
 
 	s, ok := unescape(t.Value)
 	if !ok {
@@ -37,13 +40,10 @@ func parseString(p *parser, t token) (Node, error) {
 		if len(s) > 0 && s[0] == 'u' {
 			typ = ErrIllegalEscapeHex
 		}
-
 		return nil, newErrorHint(typ, t, s)
 	}
 
-	return &StringNode{
-		Value: s,
-	}, nil
+	return &StringNode{Value: s}, nil
 }
 
 func (n *StringNode) optimize() (Node, error) {
