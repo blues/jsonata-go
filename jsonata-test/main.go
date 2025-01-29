@@ -179,12 +179,13 @@ func runTest(tc testCase, dataDir string, path string) (bool, error) {
 // loadTestExprFile loads a jsonata expression from a file and returns the
 // expression
 // For example, one test looks like this
-// {
-//     "expr-file": "case000.jsonata",
-//     "dataset": null,
-//     "bindings": {},
-//     "result": 2
-// }
+//
+//	{
+//	    "expr-file": "case000.jsonata",
+//	    "dataset": null,
+//	    "bindings": {},
+//	    "result": 2
+//	}
 //
 // We want to load the expression from case000.jsonata so we can use it
 // as an expression in the test case
