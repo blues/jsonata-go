@@ -21,6 +21,12 @@ jobs:
     - name: Run staticcheck
       run: staticcheck ./...
     - name: Check code formatting
-      run: test -z $(goimports -l .)
+      run: |
+        files=$(goimports -l .)
+        if [ -n "$files" ]; then
+          echo "The following files need formatting:"
+          echo "$files"
+          exit 1
+        fi
     - name: Run Test
       run: go test ./...
