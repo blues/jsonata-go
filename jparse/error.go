@@ -29,6 +29,7 @@ const (
 	ErrInvalidNumber
 	ErrNumberRange
 	ErrEmptyRegex
+	ErrUnterminatedComment
 	ErrInvalidRegex
 	ErrGroupPredicate
 	ErrGroupGroup
@@ -60,6 +61,7 @@ var errmsgs = map[ErrType]string{
 	ErrNumberRange:        "invalid number literal {{token}}: value out of range",
 	ErrEmptyRegex:         "invalid regular expression: expression cannot be empty",
 	ErrInvalidRegex:       "invalid regular expression {{token}}: {{hint}}",
+	ErrUnterminatedComment: "unterminated comment (no closing */)",
 	ErrGroupPredicate:     "a predicate cannot follow a grouping expression in a path step",
 	ErrGroupGroup:         "a path step can only have one grouping expression",
 	ErrPathLiteral:        "invalid path step {{hint}}: paths cannot contain nulls, strings, numbers or booleans",

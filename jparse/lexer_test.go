@@ -16,6 +16,86 @@ type lexerTestCase struct {
 	Error      error
 }
 
+func TestLexerComments(t *testing.T) {
+	cases := []struct {
+		name    string
+		input   string
+		want    []token
+		wantErr *Error
+	}{
+		{
+			name:  "basic comment",
+			input: "/* this is a comment */ 42",
+			want: []token{
+				{Type: typeNumber, Value: "42", Position: 22},
+			},
+		},
+		{
+			name:  "comment between tokens",
+			input: "1 /* comment */ + 2",
+			want: []token{
+				{Type: typeNumber, Value: "1", Position: 0},
+				{Type: typePlus, Value: "+", Position: 16},
+				{Type: typeNumber, Value: "2", Position: 18},
+			},
+		},
+		{
+			name:  "unterminated comment",
+			input: "/* unterminated",
+			want: []token{
+				{Type: typeError, Value: "", Position: 0},
+			},
+			wantErr: &Error{
+				Type:     ErrUnterminatedComment,
+				Position: 0,
+			},
+		},
+		{
+			name:  "nested-looking comment",
+			input: "/* outer /* inner */ 42",
+			want: []token{
+				{Type: typeNumber, Value: "42", Position: 22},
+			},
+		},
+		{
+			name:  "multiple comments",
+			input: "1 /* first */ + /* second */ 2",
+			want: []token{
+				{Type: typeNumber, Value: "1", Position: 0},
+				{Type: typePlus, Value: "+", Position: 16},
+				{Type: typeNumber, Value: "2", Position: 31},
+			},
+		},
+		{
+			name:  "comment at end",
+			input: "42 /* end comment */",
+			want: []token{
+				{Type: typeNumber, Value: "42", Position: 0},
+			},
+		},
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			l := newLexer(tt.input)
+			var got []token
+			for {
+				tok := l.next(true)
+				if tok.Type == typeEOF {
+					break
+				}
+				got = append(got, tok)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("got tokens = %v, want %v", got, tt.want)
+			}
+			if !reflect.DeepEqual(l.Error, tt.wantErr) {
+				t.Errorf("got error = %v, want %v", l.Error, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestLexerWhitespace(t *testing.T) {
 	testLexer(t, []lexerTestCase{
 		{

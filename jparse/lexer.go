@@ -43,6 +43,9 @@ const (
 	typeMult
 	typeDiv
 	typeMod
+	typeParent
+	typeCrossRef
+	typePosition
 	typePipe
 	typeEqual
 	typeNotEqual
@@ -217,9 +220,28 @@ func (l *lexer) next(allowRegex bool) token {
 		return l.eof()
 	}
 
-	if allowRegex && ch == '/' {
-		l.ignore()
-		return l.scanRegex(ch)
+	if ch == '/' {
+		if l.nextRune() == '*' {
+			l.ignore()
+			for {
+				r := l.nextRune()
+				if r == '*' {
+					if l.nextRune() == '/' {
+						l.ignore()
+						return l.next(allowRegex) // skip comment and return next token
+					}
+					l.backup() // wasn't end of comment, put back the char after *
+				}
+				if r == eof {
+					return l.error(ErrUnterminatedComment, "")
+				}
+			}
+		}
+		l.backup() // wasn't a comment, put back the char after /
+		if allowRegex {
+			l.ignore()
+			return l.scanRegex(ch)
+		}
 	}
 
 	if rts := lookupSymbol2(ch); rts != nil {
@@ -325,19 +347,31 @@ Loop:
 // scanNumber reads a number literal from the current position
 // and returns a number token.
 func (l *lexer) scanNumber() token {
-
-	// JSON does not support leading zeroes. The integer part of
-	// a number will either be a single zero, or a non-zero digit
-	// followed by zero or more digits.
-	if !l.acceptRune('0') {
+	if l.acceptRune('0') {
+		if l.acceptRunes2('b', 'B') {
+			if !l.acceptAll(isBinaryDigit) {
+				return l.error(ErrInvalidNumber, "binary")
+			}
+			return l.newToken(typeNumber)
+		}
+		if l.acceptRunes2('o', 'O') {
+			if !l.acceptAll(isOctalDigit) {
+				return l.error(ErrInvalidNumber, "octal")
+			}
+			return l.newToken(typeNumber)
+		}
+		if l.acceptRunes2('x', 'X') {
+			if !l.acceptAll(isHexDigit) {
+				return l.error(ErrInvalidNumber, "hex")
+			}
+			return l.newToken(typeNumber)
+		}
+	} else {
 		l.accept(isNonZeroDigit)
 		l.acceptAll(isDigit)
 	}
 	if l.acceptRune('.') {
 		if !l.acceptAll(isDigit) {
-			// If there are no digits after the decimal point,
-			// don't treat the dot as part of the number. It
-			// could be part of the range operator, e.g. "1..5".
 			l.backup()
 			return l.newToken(typeNumber)
 		}
@@ -520,6 +554,18 @@ func isDigit(r rune) bool {
 
 func isNonZeroDigit(r rune) bool {
 	return r >= '1' && r <= '9'
+}
+
+func isBinaryDigit(r rune) bool {
+	return r == '0' || r == '1'
+}
+
+func isOctalDigit(r rune) bool {
+	return r >= '0' && r <= '7'
+}
+
+func isHexDigit(r rune) bool {
+	return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')
 }
 
 // symbolsAndKeywords maps operator token types back to their
