@@ -99,7 +99,7 @@ func TestLexerComments(t *testing.T) {
 func TestLexerOperators(t *testing.T) {
 	testLexer(t, []lexerTestCase{
 		{
-			Input: "10 % 3 + Account.%.name",
+			Input:      "10 % 3 + Account.%.name",
 			AllowRegex: true,
 			Tokens: []token{
 				tok(typeNumber, "10", 0),
@@ -114,7 +114,7 @@ func TestLexerOperators(t *testing.T) {
 			},
 		},
 		{
-			Input: "Orders@$O[%.Type='retail']",
+			Input:      "Orders@$O[%.Type='retail']",
 			AllowRegex: true,
 			Tokens: []token{
 				tok(typeName, "Orders", 0),
@@ -130,7 +130,7 @@ func TestLexerOperators(t *testing.T) {
 			},
 		},
 		{
-			Input: "Orders#$i[Position=$i]",
+			Input:      "Orders#$i[Position=$i]",
 			AllowRegex: true,
 			Tokens: []token{
 				tok(typeName, "Orders", 0),
@@ -311,8 +311,6 @@ func TestLexerStrings(t *testing.T) {
 		},
 	})
 }
-
-
 
 func TestLexerNumbers(t *testing.T) {
 	testLexer(t, []lexerTestCase{

@@ -26,7 +26,7 @@ func TestParseNumber(t *testing.T) {
 		{"binary with zeros", "0b00001010", 10, false},
 		{"invalid binary", "0b102", 0, true},
 		{"invalid binary chars", "0b1a1", 0, true},
-		
+
 		// Octal numbers
 		{"octal lowercase", "0o12", 10, false},
 		{"octal uppercase", "0O755", 493, false},
@@ -34,7 +34,7 @@ func TestParseNumber(t *testing.T) {
 		{"octal with zeros", "0o0012", 10, false},
 		{"invalid octal", "0o8", 0, true},
 		{"invalid octal chars", "0o7a7", 0, true},
-		
+
 		// Hexadecimal numbers
 		{"hex lowercase", "0x12", 18, false},
 		{"hex uppercase", "0XFF", 255, false},
@@ -43,7 +43,7 @@ func TestParseNumber(t *testing.T) {
 		{"hex all letters", "0xabcdef", 11259375, false},
 		{"invalid hex", "0xGG", 0, true},
 		{"invalid hex chars", "0x12H4", 0, true},
-		
+
 		// Edge cases and special values
 		{"empty string", "", 0, true},
 		{"invalid prefix", "0k123", 0, true},
@@ -64,7 +64,7 @@ func TestParseNumber(t *testing.T) {
 		{"multiple decimal points", "42.0.0", 0, true},
 		{"invalid chars", "42abc", 0, true},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := jlib.Number(tt.input)
@@ -81,12 +81,12 @@ func TestParseNumber(t *testing.T) {
 
 func TestFormatting(t *testing.T) {
 	tests := []struct {
-		name     string
-		fn       string
-		input    float64
-		args     interface{}
-		want     string
-		wantErr  bool
+		name    string
+		fn      string
+		input   float64
+		args    interface{}
+		want    string
+		wantErr bool
 	}{
 		{"formatBase binary", "FormatBase", 42, jtypes.NewOptionalFloat64(2), "101010", false},
 		{"formatBase octal", "FormatBase", 42, jtypes.NewOptionalFloat64(8), "52", false},
@@ -113,7 +113,7 @@ func TestFormatting(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var got string
 			var err error
-			
+
 			switch tt.fn {
 			case "FormatBase":
 				got, err = jlib.FormatBase(tt.input, tt.args.(jtypes.OptionalFloat64))

@@ -44,9 +44,9 @@ const (
 	typeMult
 	typeDiv
 	typeMod
-	typeParent    // %
-	typeCrossRef  // @
-	typePosition  // #
+	typeParent   // %
+	typeCrossRef // @
+	typePosition // #
 	typePipe
 	typeEqual
 	typeNotEqual
@@ -379,7 +379,7 @@ func (l *lexer) scanRegex(delim rune) token {
 func (l *lexer) scanString(quote rune) token {
 	pos := l.start
 	l.nextRune() // consume opening quote
-	
+
 	var value strings.Builder
 	for {
 		ch := l.nextRune()
@@ -411,7 +411,7 @@ func (l *lexer) scanString(quote rune) token {
 		}
 		value.WriteRune(ch)
 	}
-	
+
 	return token{
 		Type:     typeString,
 		Value:    value.String(),
@@ -423,13 +423,13 @@ func (l *lexer) scanString(quote rune) token {
 // and returns a number token.
 func (l *lexer) scanNumber() token {
 	pos := l.start
-	
+
 	// Handle negative numbers
 	isNegative := l.acceptRune('-')
 	if isNegative && !isDigit(l.peek()) {
 		return token{Type: typeMinus, Value: "-", Position: pos}
 	}
-	
+
 	// Handle special number formats (hex, binary, octal)
 	if l.acceptRune('0') {
 		next := l.peek()
@@ -471,12 +471,12 @@ func (l *lexer) scanNumber() token {
 
 	// Handle decimal numbers
 	hasDigits := l.acceptAll(isDigit)
-	
+
 	// Handle decimal point after digits
 	if l.acceptRune('.') {
 		if !l.acceptAll(isDigit) {
 			l.backup()
-			return token{Type: typeNumber, Value: l.input[pos:l.current-1], Position: pos}
+			return token{Type: typeNumber, Value: l.input[pos : l.current-1], Position: pos}
 		}
 	}
 
@@ -665,8 +665,6 @@ func isRegexFlag(r rune) bool {
 func isDigit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
-
-
 
 func isBinaryDigit(r rune) bool {
 	return r == '0' || r == '1'

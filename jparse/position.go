@@ -60,7 +60,7 @@ func (n PositionNode) Evaluate(ctx *Context) (interface{}, error) {
 
 	var input interface{}
 	var err error
-	
+
 	if n.Input != nil {
 		input, err = n.Input.Evaluate(ctx)
 		if err != nil {
@@ -69,28 +69,28 @@ func (n PositionNode) Evaluate(ctx *Context) (interface{}, error) {
 	} else {
 		input = ctx.Input
 	}
-	
+
 	if input == nil {
 		return nil, nil
 	}
-	
+
 	// Handle array inputs
 	items, ok := input.([]interface{})
 	if !ok {
 		items = []interface{}{input}
 	}
-	
+
 	// Handle variable binding with optional predicate
 	if n.Variable != nil {
 		var results []interface{}
 		for i, item := range items {
 			itemCtx := NewContext(item, ctx)
 			itemCtx.Position = i
-			
+
 			if varNode, ok := n.Variable.(*VariableNode); ok {
 				itemCtx = itemCtx.WithVariable(varNode.Name, float64(i))
 			}
-			
+
 			if n.Predicate != nil {
 				match, err := n.Predicate.Evaluate(itemCtx)
 				if err != nil {
@@ -111,7 +111,7 @@ func (n PositionNode) Evaluate(ctx *Context) (interface{}, error) {
 		}
 		return results, nil
 	}
-	
+
 	// Handle explicit position expression
 	if n.Expr != nil {
 		pos, err := n.Expr.Evaluate(ctx)
@@ -126,7 +126,7 @@ func (n PositionNode) Evaluate(ctx *Context) (interface{}, error) {
 		}
 		return nil, nil
 	}
-	
+
 	// Return current position
 	if ctx.Position >= 0 {
 		return float64(ctx.Position), nil

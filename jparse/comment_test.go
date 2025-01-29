@@ -74,7 +74,7 @@ func TestCommentLexer(t *testing.T) {
 			l := newLexer(tt.input)
 			var got []tokenType
 			var hasError bool
-			
+
 			for {
 				tok := l.next(true)
 				if tok.Type == typeEOF {

@@ -77,7 +77,7 @@ func parseCrossReferenceOperator(p *parser, t token, lhs Node) (Node, error) {
 
 	varName := p.token.Value
 	p.advance(false)
-	
+
 	var path Node
 	if p.token.Type == typeBracketOpen {
 		p.advance(false)
@@ -115,7 +115,7 @@ func parsePositionOperator(p *parser, t token, lhs Node) (Node, error) {
 	if p.token.Type == typeVariable {
 		varName := p.token.Value
 		p.advance(false)
-		
+
 		// Parse optional predicate
 		var predicate Node
 		if p.token.Type == typeBracketOpen {

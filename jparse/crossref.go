@@ -52,11 +52,11 @@ func (n CrossReferenceNode) Evaluate(ctx *Context) (interface{}, error) {
 		for i, item := range arr {
 			itemCtx := NewContext(item, ctx)
 			itemCtx.Position = i
-			
+
 			// Extract variable name and bind it
 			if varNode, ok := n.RHS.(*VariableNode); ok {
 				itemCtx = itemCtx.WithVariable(varNode.Name, item)
-				
+
 				// If there's a predicate after the variable, evaluate it
 				if pred := varNode.Next; pred != nil {
 					predCtx := itemCtx.WithInput(item)
@@ -64,7 +64,7 @@ func (n CrossReferenceNode) Evaluate(ctx *Context) (interface{}, error) {
 					if err != nil {
 						return nil, err
 					}
-					
+
 					// Only include items that match the predicate
 					if b, ok := result.(bool); ok && b {
 						if n.Path != nil {
@@ -81,7 +81,7 @@ func (n CrossReferenceNode) Evaluate(ctx *Context) (interface{}, error) {
 					}
 					continue
 				}
-				
+
 				if n.Path != nil {
 					pathResult, err := n.Path.Evaluate(itemCtx)
 					if err != nil {
@@ -95,7 +95,7 @@ func (n CrossReferenceNode) Evaluate(ctx *Context) (interface{}, error) {
 				}
 				continue
 			}
-			
+
 			// Handle non-variable RHS expressions
 			result, err := n.RHS.Evaluate(itemCtx)
 			if err != nil {
@@ -127,11 +127,11 @@ func (n CrossReferenceNode) Evaluate(ctx *Context) (interface{}, error) {
 
 	// Create new context with LHS as input and bind variable
 	rhsCtx := NewContext(lhs, ctx)
-	
+
 	// Handle variable binding
 	if varNode, ok := n.RHS.(*VariableNode); ok {
 		rhsCtx = rhsCtx.WithVariable(varNode.Name, lhs)
-		
+
 		// If there's a predicate after the variable, evaluate it
 		if pred := varNode.Next; pred != nil {
 			predCtx := rhsCtx.WithInput(lhs)
@@ -139,7 +139,7 @@ func (n CrossReferenceNode) Evaluate(ctx *Context) (interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
-			
+
 			// Only return value if predicate matches
 			if b, ok := result.(bool); ok && b {
 				if n.Path != nil {
@@ -149,13 +149,13 @@ func (n CrossReferenceNode) Evaluate(ctx *Context) (interface{}, error) {
 			}
 			return nil, nil
 		}
-		
+
 		if n.Path != nil {
 			return n.Path.Evaluate(rhsCtx)
 		}
 		return lhs, nil
 	}
-	
+
 	result, err := n.RHS.Evaluate(rhsCtx)
 	if err != nil {
 		return nil, err

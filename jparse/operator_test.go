@@ -8,11 +8,11 @@ import (
 
 func TestOperatorEvaluation(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		data     interface{}
-		want     interface{}
-		wantErr  bool
+		name    string
+		input   string
+		data    interface{}
+		want    interface{}
+		wantErr bool
 	}{
 		// Parent operator tests
 		{
@@ -51,7 +51,7 @@ func TestOperatorEvaluation(t *testing.T) {
 			},
 			want: "O1",
 		},
-		
+
 		// Cross reference operator tests
 		{
 			name:  "cross reference basic",
@@ -61,7 +61,7 @@ func TestOperatorEvaluation(t *testing.T) {
 					"Order": map[string]interface{}{
 						"Product": map[string]interface{}{
 							"ProductID": "P123",
-							"Name": "Widget",
+							"Name":      "Widget",
 						},
 					},
 				},
@@ -77,11 +77,11 @@ func TestOperatorEvaluation(t *testing.T) {
 						"Product": []interface{}{
 							map[string]interface{}{
 								"ProductID": "P123",
-								"Name": "Widget",
+								"Name":      "Widget",
 							},
 							map[string]interface{}{
 								"ProductID": "P456",
-								"Name": "Gadget",
+								"Name":      "Gadget",
 							},
 						},
 					},
@@ -114,7 +114,7 @@ func TestOperatorEvaluation(t *testing.T) {
 			},
 			want: []interface{}{"P1", "P2"},
 		},
-		
+
 		// Position operator tests
 		{
 			name:  "position operator basic",
@@ -145,9 +145,9 @@ func TestOperatorEvaluation(t *testing.T) {
 			want: map[string]interface{}{"id": "2"},
 		},
 		{
-			name:  "position operator outside sequence",
-			input: "Account.Order[#]",
-			data:  42,
+			name:    "position operator outside sequence",
+			input:   "Account.Order[#]",
+			data:    42,
 			wantErr: true,
 		},
 		{
@@ -164,7 +164,7 @@ func TestOperatorEvaluation(t *testing.T) {
 			},
 			want: []interface{}{0.0, 1.0, 2.0},
 		},
-		
+
 		// Combined operator tests
 		{
 			name:  "combined operators basic",
@@ -191,14 +191,14 @@ func TestOperatorEvaluation(t *testing.T) {
 					"Order": []interface{}{
 						map[string]interface{}{
 							"OrderID": "O1",
-							"Type": "retail",
+							"Type":    "retail",
 							"Product": map[string]interface{}{
 								"ProductID": "P1",
 							},
 						},
 						map[string]interface{}{
 							"OrderID": "O2",
-							"Type": "wholesale",
+							"Type":    "wholesale",
 							"Product": map[string]interface{}{
 								"ProductID": "P2",
 							},
@@ -223,8 +223,8 @@ func TestOperatorEvaluation(t *testing.T) {
 				},
 			},
 			want: map[string]interface{}{
-				"name": "Widget",
-				"order": "O1",
+				"name":    "Widget",
+				"order":   "O1",
 				"account": "A1",
 			},
 		},
@@ -235,14 +235,14 @@ func TestOperatorEvaluation(t *testing.T) {
 				"Account": map[string]interface{}{
 					"Order": []interface{}{
 						map[string]interface{}{
-							"OrderID": "O1",
+							"OrderID":  "O1",
 							"Position": 0,
 							"Product": map[string]interface{}{
 								"ProductID": "P1",
 							},
 						},
 						map[string]interface{}{
-							"OrderID": "O2",
+							"OrderID":  "O2",
 							"Position": 1,
 							"Product": map[string]interface{}{
 								"ProductID": "P2",
@@ -309,7 +309,7 @@ func TestOperatorEvaluation(t *testing.T) {
 					"Orders": []interface{}{
 						map[string]interface{}{
 							"OrderID": "O1",
-							"Type": "retail",
+							"Type":    "retail",
 							"Products": []interface{}{
 								map[string]interface{}{"ProductID": "P1"},
 								map[string]interface{}{"ProductID": "P2"},
@@ -317,7 +317,7 @@ func TestOperatorEvaluation(t *testing.T) {
 						},
 						map[string]interface{}{
 							"OrderID": "O2",
-							"Type": "wholesale",
+							"Type":    "wholesale",
 							"Products": []interface{}{
 								map[string]interface{}{"ProductID": "P3"},
 							},
@@ -414,9 +414,9 @@ func TestOperatorEvaluation(t *testing.T) {
 
 func TestOperatorLexer(t *testing.T) {
 	cases := []struct {
-		name    string
-		input   string
-		want    []token
+		name  string
+		input string
+		want  []token
 	}{
 		{
 			name:  "parent operator",
@@ -471,7 +471,7 @@ func TestOperatorLexer(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			l := newLexer(tt.input)
 			var got []token
-			
+
 			for {
 				tok := l.next(true)
 				if tok.Type == typeEOF {

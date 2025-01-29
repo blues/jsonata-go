@@ -207,7 +207,7 @@ func ParseInteger(value interface{}, base jtypes.OptionalFloat64) (float64, erro
 // It does this by converting back and forth to strings to
 // avoid floating point rounding errors, e.g.
 //
-//     4.525 * math.Pow10(2) returns 452.50000000000006
+//	4.525 * math.Pow10(2) returns 452.50000000000006
 func multByPow10(x float64, n int) float64 {
 	if n == 0 || math.IsNaN(x) || math.IsInf(x, 0) {
 		return x

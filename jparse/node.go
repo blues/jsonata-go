@@ -5,10 +5,10 @@
 package jparse
 
 import (
-	"sort"
 	"fmt"
 	"regexp"
 	"regexp/syntax"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf16"
@@ -259,7 +259,7 @@ func (n NameNode) Evaluate(ctx *Context) (interface{}, error) {
 	if ctx.Input == nil {
 		return nil, nil
 	}
-	
+
 	switch v := ctx.Input.(type) {
 	case map[string]interface{}:
 		return v[n.Value], nil
@@ -369,12 +369,12 @@ func (n NegationNode) Evaluate(ctx *Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	num, ok := val.(float64)
 	if !ok {
 		return nil, fmt.Errorf("cannot negate non-numeric value")
 	}
-	
+
 	return -num, nil
 }
 
@@ -410,22 +410,22 @@ func (n RangeNode) Evaluate(ctx *Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	end, err := n.RHS.Evaluate(ctx)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	startNum, ok := start.(float64)
 	if !ok {
 		return nil, fmt.Errorf("range start must be numeric")
 	}
-	
+
 	endNum, ok := end.(float64)
 	if !ok {
 		return nil, fmt.Errorf("range end must be numeric")
 	}
-	
+
 	var result []interface{}
 	for i := startNum; i <= endNum; i++ {
 		result = append(result, i)
@@ -560,26 +560,26 @@ func (n ObjectNode) String() string {
 
 func (n ObjectNode) Evaluate(ctx *Context) (interface{}, error) {
 	result := make(map[string]interface{})
-	
+
 	for _, pair := range n.Pairs {
 		key, err := pair[0].Evaluate(ctx)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		keyStr, ok := key.(string)
 		if !ok {
 			return nil, fmt.Errorf("object key must evaluate to string")
 		}
-		
+
 		value, err := pair[1].Evaluate(ctx)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		result[keyStr] = value
 	}
-	
+
 	return result, nil
 }
 
@@ -658,7 +658,7 @@ func (n WildcardNode) Evaluate(ctx *Context) (interface{}, error) {
 	if ctx.Input == nil {
 		return nil, nil
 	}
-	
+
 	switch v := ctx.Input.(type) {
 	case map[string]interface{}:
 		result := make([]interface{}, 0, len(v))
@@ -694,7 +694,7 @@ func (n DescendentNode) Evaluate(ctx *Context) (interface{}, error) {
 	}
 
 	var results []interface{}
-	
+
 	switch v := ctx.Input.(type) {
 	case map[string]interface{}:
 		for _, val := range v {
@@ -1677,12 +1677,12 @@ func (n ConditionalNode) Evaluate(ctx *Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	cbool, ok := cond.(bool)
 	if !ok {
 		return nil, fmt.Errorf("condition must evaluate to boolean")
 	}
-	
+
 	if cbool {
 		return n.Then.Evaluate(ctx)
 	}
@@ -1826,22 +1826,22 @@ func (n NumericOperatorNode) Evaluate(ctx *Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	rhs, err := n.RHS.Evaluate(ctx)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	lnum, ok := lhs.(float64)
 	if !ok {
 		return nil, fmt.Errorf("left operand must be numeric")
 	}
-	
+
 	rnum, ok := rhs.(float64)
 	if !ok {
 		return nil, fmt.Errorf("right operand must be numeric")
 	}
-	
+
 	switch n.Type {
 	case NumericAdd:
 		return lnum + rnum, nil
@@ -1963,12 +1963,12 @@ func (n ComparisonOperatorNode) Evaluate(ctx *Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	rhs, err := n.RHS.Evaluate(ctx)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	switch n.Type {
 	case ComparisonEqual:
 		return deepEqual(lhs, rhs), nil
@@ -1991,56 +1991,56 @@ func (n ComparisonOperatorNode) Evaluate(ctx *Context) (interface{}, error) {
 
 // A BinaryNode represents a binary operation between two nodes.
 type BinaryNode struct {
-    Op    tokenType
-    Left  Node
-    Right Node
+	Op    tokenType
+	Left  Node
+	Right Node
 }
 
 func (n *BinaryNode) optimize() (Node, error) {
-    var err error
-    n.Left, err = n.Left.optimize()
-    if err != nil {
-        return nil, err
-    }
-    n.Right, err = n.Right.optimize()
-    if err != nil {
-        return nil, err
-    }
-    return n, nil
+	var err error
+	n.Left, err = n.Left.optimize()
+	if err != nil {
+		return nil, err
+	}
+	n.Right, err = n.Right.optimize()
+	if err != nil {
+		return nil, err
+	}
+	return n, nil
 }
 
 func (n BinaryNode) String() string {
-    return fmt.Sprintf("%s %s %s", n.Left, n.Op, n.Right)
+	return fmt.Sprintf("%s %s %s", n.Left, n.Op, n.Right)
 }
 
 func (n BinaryNode) Evaluate(ctx *Context) (interface{}, error) {
-    lhs, err := n.Left.Evaluate(ctx)
-    if err != nil {
-        return nil, err
-    }
-    
-    rhs, err := n.Right.Evaluate(ctx)
-    if err != nil {
-        return nil, err
-    }
-    
-    switch n.Op {
-    case typeMod:
-        lnum, ok := lhs.(float64)
-        if !ok {
-            return nil, fmt.Errorf("left operand must be numeric")
-        }
-        rnum, ok := rhs.(float64)
-        if !ok {
-            return nil, fmt.Errorf("right operand must be numeric")
-        }
-        if rnum == 0 {
-            return nil, fmt.Errorf("modulo by zero")
-        }
-        return float64(int64(lnum) % int64(rnum)), nil
-    default:
-        return nil, fmt.Errorf("unsupported binary operator: %v", n.Op)
-    }
+	lhs, err := n.Left.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	rhs, err := n.Right.Evaluate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	switch n.Op {
+	case typeMod:
+		lnum, ok := lhs.(float64)
+		if !ok {
+			return nil, fmt.Errorf("left operand must be numeric")
+		}
+		rnum, ok := rhs.(float64)
+		if !ok {
+			return nil, fmt.Errorf("right operand must be numeric")
+		}
+		if rnum == 0 {
+			return nil, fmt.Errorf("modulo by zero")
+		}
+		return float64(int64(lnum) % int64(rnum)), nil
+	default:
+		return nil, fmt.Errorf("unsupported binary operator: %v", n.Op)
+	}
 }
 
 // A BooleanOperator is a logical AND or OR operation between
@@ -2118,30 +2118,30 @@ func (n BooleanOperatorNode) Evaluate(ctx *Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Short-circuit evaluation for AND/OR
 	lbool, ok := lhs.(bool)
 	if !ok {
 		return nil, fmt.Errorf("left operand must be boolean")
 	}
-	
+
 	if n.Type == BooleanAnd && !lbool {
 		return false, nil
 	}
 	if n.Type == BooleanOr && lbool {
 		return true, nil
 	}
-	
+
 	rhs, err := n.RHS.Evaluate(ctx)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	rbool, ok := rhs.(bool)
 	if !ok {
 		return nil, fmt.Errorf("right operand must be boolean")
 	}
-	
+
 	switch n.Type {
 	case BooleanAnd:
 		return lbool && rbool, nil
@@ -2410,8 +2410,6 @@ func (n FunctionApplicationNode) Evaluate(ctx *Context) (interface{}, error) {
 // expressions. It is deliberately unexported and creates a PathNode
 // during its optimize phase.
 
-
-
 // A singletonArrayNode is an interim data structure used when
 // processing path expressions. It is deliberately unexported
 // and gets converted into a PathNode during optimization.
@@ -2446,16 +2444,16 @@ func (n singletonArrayNode) Evaluate(ctx *Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if result == nil {
 		return nil, nil
 	}
-	
+
 	// If result is already an array, return it as-is
 	if arr, ok := result.([]interface{}); ok {
 		return arr, nil
 	}
-	
+
 	// Otherwise wrap the single value in an array
 	return []interface{}{result}, nil
 }
