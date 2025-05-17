@@ -475,12 +475,24 @@ func FormatBase(value float64, base jtypes.OptionalFloat64) (string, error) {
 }
 
 // Base64Encode returns the base 64 encoding of a string.
+// If the input is an empty string, returns an error to signal undefined.
 func Base64Encode(s string) (string, error) {
+	// Handle the case of empty input
+	if s == "" {
+		// This will be converted to undefined in the callable.Call method
+		return "", jtypes.ErrUndefined
+	}
 	return base64.StdEncoding.EncodeToString([]byte(s)), nil
 }
 
 // Base64Decode returns the string represented by a base 64 string.
+// If the input is an empty string, returns an error to signal undefined.
 func Base64Decode(s string) (string, error) {
+	// Handle the case of empty input
+	if s == "" {
+		// This will be converted to undefined in the callable.Call method
+		return "", jtypes.ErrUndefined
+	}
 
 	b, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {

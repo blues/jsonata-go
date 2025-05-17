@@ -528,6 +528,14 @@ func evalBlock(node *jparse.BlockNode, data reflect.Value, env *environment) (re
 	// environment of the correct size?
 	env = newEnvironment(env, 0)
 
+	// If the block is empty, return an explicit nil value, not undefined.
+	// Empty blocks should return null/nil according to JSONata spec.
+	if len(node.Exprs) == 0 {
+		// Return a nil value wrapped in a reflect.Value.
+		// This will be interpreted as null in JSON or undefined in JSONata context.
+		return reflect.Zero(jtypes.TypeInterface), nil
+	}
+
 	// Evaluate all expressions in the block.
 	for _, node := range node.Exprs {
 		res, err = eval(node, data, env)

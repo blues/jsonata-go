@@ -246,19 +246,23 @@ func (c *goCallable) validateArgCount(argv []reflect.Value) ([]reflect.Value, er
 
 	argc := len(argv)
 
+	// Check for undefined arguments first
+	// This ensures that $base64encode() with no arguments returns undefined
+	// rather than trying to use the context as an argument
+	if c.undefinedHandler != nil && c.undefinedHandler(argv) {
+		// TODO: Validate the other arguments before doing
+		// this. Otherwise we mask errors with the other
+		// arguments.
+		return nil, jtypes.ErrUndefined
+	}
+	
+	// Only use context handler if we haven't determined the result is undefined
 	if c.contextHandler != nil && c.contextHandler(argv) {
 		// TODO: Return an error if the evaluation context
 		// is not the correct type.
 		newargv := make([]reflect.Value, 1, len(argv)+1)
 		newargv[0] = c.context
 		argv = append(newargv, argv...)
-	}
-
-	if c.undefinedHandler != nil && c.undefinedHandler(argv) {
-		// TODO: Validate the other arguments before doing
-		// this. Otherwise we mask errors with the other
-		// arguments.
-		return nil, jtypes.ErrUndefined
 	}
 
 	paramCount := len(c.params)

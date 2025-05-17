@@ -156,8 +156,8 @@ var baseEnv = initBaseEnv(map[string]Extension{
 	},
 	"base64decode": {
 		Func:               jlib.Base64Decode,
-		UndefinedHandler:   defaultUndefinedHandler,
-		EvalContextHandler: defaultContextHandler,
+		UndefinedHandler:   jtypes.ArgCountEquals(0),
+		EvalContextHandler: nil,
 	},
 	"decodeUrl": {
 		Func:               jlib.DecodeURL,
