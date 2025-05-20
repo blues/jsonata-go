@@ -1,0 +1,90 @@
+body {
+    font-size: 15px;
+    font-family: Helvetica, Arial, sans-serif;
+    color: #333;
+    background: #eee;
+}
+
+header {
+    margin: 0 2em;
+    height: 5.5em;
+    line-height: 5.5em;
+}
+
+header h1, header ul {
+    margin: 0;
+}
+
+header h1 {
+    float: left;
+    font-size: 1.65em;
+}
+
+header ul {
+    float: right;
+}
+
+header li {
+    display: inline-block;
+    padding: 0 .75em;
+}
+
+header li a {
+    display: block;
+}
+
+a:link, a:visited {
+    color: #3b4f5e;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+a:active, a:hover {
+    color:#333;
+}
+
+.main {
+    position: absolute;
+    top: 5.5em;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* SplitJS styles */
+
+.split, .gutter.gutter-horizontal {
+    height: 100%;
+    float: left;
+}
+
+.gutter {
+    background-color: inherit;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+.gutter.gutter-vertical {
+    cursor: ns-resize;
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=");
+}
+
+.gutter.gutter-horizontal {
+    cursor: ew-resize;
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==");
+}
+
+/* CodeMirror styles */
+
+.CodeMirror {
+    font-family: 'Roboto Mono', monospace;
+    background: #fefefe;
+    border-radius: 2px;
+    border: 1px solid #ccc;
+    width: calc(100% - 2px);
+    height: calc(100% - 2px);
+}
+
+textarea[readonly] + .CodeMirror {
+    background: #f6f6f6;
+}
