@@ -379,3 +379,8 @@ func isLetter(r rune) bool {
 func isDigit(r rune) bool {
 	return (r >= '0' && r <= '9') || unicode.IsDigit(r)
 }
+
+// Cross-package exports so that everything we need can also be obtained at the root package level
+var ArgUndefined = jtypes.ArgUndefined
+
+type ArgHandler = jtypes.ArgHandler
