@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod:*)",
+      "Bash(./run.sh:*)",
+      "Bash(ls:*)",
+      "Bash(go build:*)",
+      "Bash(bash:*)",
+      "Bash(go get:*)",
+      "Bash(mkdir:*)",
+      "Bash(go run:*)"
+    ],
+    "deny": []
+  }
+}
