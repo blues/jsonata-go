@@ -17,6 +17,7 @@ import (
 )
 
 var reNumber = regexp.MustCompile(`^-?(([0-9]+))(\.[0-9]+)?([Ee][-+]?[0-9]+)?$`)
+var reHexNumber = regexp.MustCompile(`^-?0[xX][0-9a-fA-F]+$`)
 
 // Number converts values to numbers. Numeric values are returned
 // unchanged. Strings in legal JSON number format are converted
@@ -36,7 +37,27 @@ func Number(value StringNumberBool) (float64, error) {
 	}
 
 	s, ok := jtypes.AsString(v)
-	if ok && reNumber.MatchString(s) {
+	if !ok {
+		return 0, fmt.Errorf("unable to cast %q to a number", s)
+	}
+
+	// Check for hexadecimal numbers first
+	if reHexNumber.MatchString(s) {
+		// Remove the 0x or 0X prefix and parse as base 16
+		hexStr := s
+		if strings.HasPrefix(s, "-0x") || strings.HasPrefix(s, "-0X") {
+			hexStr = "-" + s[3:]
+		} else if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
+			hexStr = s[2:]
+		}
+
+		if n, err := strconv.ParseInt(hexStr, 16, 64); err == nil {
+			return float64(n), nil
+		}
+	}
+
+	// Check for regular decimal numbers
+	if reNumber.MatchString(s) {
 		if n, err := strconv.ParseFloat(s, 64); err == nil {
 			return n, nil
 		}
@@ -116,7 +137,7 @@ func Random() float64 {
 // It does this by converting back and forth to strings to
 // avoid floating point rounding errors, e.g.
 //
-//     4.525 * math.Pow10(2) returns 452.50000000000006
+//	4.525 * math.Pow10(2) returns 452.50000000000006
 func multByPow10(x float64, n int) float64 {
 	if n == 0 || math.IsNaN(x) || math.IsInf(x, 0) {
 		return x

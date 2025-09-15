@@ -5993,6 +5993,13 @@ func TestFuncNumber(t *testing.T) {
 		},
 		{
 			Expression: []string{
+				"$number(0x0023)",
+				`$number("0x0023")`,
+			},
+			Output: float64(35),
+		},
+		{
+			Expression: []string{
 				"$number(10)",
 				`$number("10")`,
 			},
