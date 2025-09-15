@@ -326,13 +326,26 @@ Loop:
 // and returns a number token.
 func (l *lexer) scanNumber() token {
 
-	// JSON does not support leading zeroes. The integer part of
-	// a number will either be a single zero, or a non-zero digit
-	// followed by zero or more digits.
-	if !l.acceptRune('0') {
+	// Check for hexadecimal numbers first (0x or 0X prefix)
+	if l.acceptRune('0') {
+		if l.acceptRunes2('x', 'X') {
+			// This is a hexadecimal number
+			if !l.acceptAll(isHexDigit) {
+				// If there are no hex digits after 0x, this is invalid
+				return l.error(ErrInvalidNumber, l.input[l.start:l.current])
+			}
+			return l.newToken(typeNumber)
+		}
+		// Single zero - valid decimal number
+	} else {
+		// JSON does not support leading zeroes. The integer part of
+		// a number will either be a single zero, or a non-zero digit
+		// followed by zero or more digits.
 		l.accept(isNonZeroDigit)
 		l.acceptAll(isDigit)
 	}
+
+	// Handle decimal point for decimal numbers
 	if l.acceptRune('.') {
 		if !l.acceptAll(isDigit) {
 			// If there are no digits after the decimal point,
@@ -342,6 +355,8 @@ func (l *lexer) scanNumber() token {
 			return l.newToken(typeNumber)
 		}
 	}
+
+	// Handle scientific notation for decimal numbers
 	if l.acceptRunes2('e', 'E') {
 		l.acceptRunes2('+', '-')
 		l.acceptAll(isDigit)
@@ -520,6 +535,10 @@ func isDigit(r rune) bool {
 
 func isNonZeroDigit(r rune) bool {
 	return r >= '1' && r <= '9'
+}
+
+func isHexDigit(r rune) bool {
+	return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')
 }
 
 // symbolsAndKeywords maps operator token types back to their

@@ -57,14 +57,32 @@ type NumberNode struct {
 
 func parseNumber(p *parser, t token) (Node, error) {
 
-	// Number literals are promoted to type float64.
-	n, err := strconv.ParseFloat(t.Value, 64)
-	if err != nil {
-		typ := ErrInvalidNumber
-		if e, ok := err.(*strconv.NumError); ok && e.Err == strconv.ErrRange {
-			typ = ErrNumberRange
+	var n float64
+	var err error
+
+	// Check if this is a hexadecimal number
+	if strings.HasPrefix(t.Value, "0x") || strings.HasPrefix(t.Value, "0X") {
+		// Parse as hexadecimal
+		hexStr := t.Value[2:] // Remove 0x prefix
+		if hexInt, parseErr := strconv.ParseInt(hexStr, 16, 64); parseErr == nil {
+			n = float64(hexInt)
+		} else {
+			typ := ErrInvalidNumber
+			if e, ok := parseErr.(*strconv.NumError); ok && e.Err == strconv.ErrRange {
+				typ = ErrNumberRange
+			}
+			return nil, newError(typ, t)
 		}
-		return nil, newError(typ, t)
+	} else {
+		// Parse as decimal number
+		n, err = strconv.ParseFloat(t.Value, 64)
+		if err != nil {
+			typ := ErrInvalidNumber
+			if e, ok := err.(*strconv.NumError); ok && e.Err == strconv.ErrRange {
+				typ = ErrNumberRange
+			}
+			return nil, newError(typ, t)
+		}
 	}
 
 	return &NumberNode{
